@@ -20,6 +20,7 @@ import {
 	ProjectsSection,
 	CustomizeSection,
 	CustomSectionsEditor,
+	SectionOrderEditor,
 } from './sections';
 import { ResumePaper } from '@/components/resume/ResumePaper';
 
@@ -249,6 +250,9 @@ export function BuildEditor() {
 				<div className="space-y-4">
 					<CollapsibleCard title="🎨 Design & Customize" defaultOpen={false}>
 						<CustomizeSection data={draft.data} update={update} />
+					</CollapsibleCard>
+					<CollapsibleCard title="↕ Section order" defaultOpen={false}>
+						<SectionOrderEditor data={draft.data} update={update} />
 					</CollapsibleCard>
 					<CollapsibleCard title="Personal Info">
 						<PersonalSection

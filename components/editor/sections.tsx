@@ -1,12 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Trash2, ArrowUp, ArrowDown, RotateCcw, Check, Sparkles } from 'lucide-react';
+import { Plus, Trash2, ArrowUp, ArrowDown, RotateCcw, Check, Sparkles, GripVertical } from 'lucide-react';
 import {
 	ACCENT_PRESETS,
+	CORE_SECTION_LABELS,
 	CUSTOM_LAYOUTS,
+	resolveSectionOrder,
 	SECTION_META,
 	SECTION_ORDER,
+	type CoreSectionKey,
 	type CustomLayout,
 	type CustomSection,
 	type EducationItem,
@@ -428,6 +431,56 @@ export function CustomizeSection({ data, update }: { data: ResumeData; update: U
 					<RotateCcw className="w-4 h-4" /> Reset to template defaults
 				</button>
 			)}
+		</div>
+	);
+}
+
+/* ---------------- Core section order (drag to reorder) ---------------- */
+export function SectionOrderEditor({ data, update }: { data: ResumeData; update: Update }) {
+	const order = resolveSectionOrder(data);
+	const [dragIdx, setDragIdx] = useState<number | null>(null);
+
+	const setOrder = (next: CoreSectionKey[]) => update((d) => ({ ...d, sectionOrder: next }));
+	const moveTo = (from: number, to: number) => {
+		if (to < 0 || to >= order.length) return;
+		const n = order.slice();
+		const [x] = n.splice(from, 1);
+		n.splice(to, 0, x);
+		setOrder(n);
+	};
+
+	return (
+		<div>
+			<p className="text-sm text-on-surface-variant mb-2">
+				Drag (or use the arrows) to reorder how sections appear on your resume.
+			</p>
+			<ul className="space-y-1.5">
+				{order.map((key, i) => (
+					<li
+						key={key}
+						draggable
+						onDragStart={() => setDragIdx(i)}
+						onDragEnd={() => setDragIdx(null)}
+						onDragOver={(e) => e.preventDefault()}
+						onDrop={() => {
+							if (dragIdx !== null && dragIdx !== i) moveTo(dragIdx, i);
+							setDragIdx(null);
+						}}
+						className={`flex items-center gap-2 rounded-lg border border-outline-variant/70 bg-surface-lowest px-3 py-2 cursor-grab ${
+							dragIdx === i ? 'opacity-40' : ''
+						}`}
+					>
+						<GripVertical className="w-4 h-4 text-outline shrink-0" />
+						<span className="flex-1 font-medium">{CORE_SECTION_LABELS[key]}</span>
+						<button className="btn-ghost p-1 rounded" onClick={() => moveTo(i, i - 1)} aria-label="Move up">
+							<ArrowUp className="w-4 h-4" />
+						</button>
+						<button className="btn-ghost p-1 rounded" onClick={() => moveTo(i, i + 1)} aria-label="Move down">
+							<ArrowDown className="w-4 h-4" />
+						</button>
+					</li>
+				))}
+			</ul>
 		</div>
 	);
 }

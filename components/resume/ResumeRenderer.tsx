@@ -1,4 +1,11 @@
-import { FONT_FAMILY, SECTION_META, type ResumeData } from '@/lib/types';
+import type { ReactNode } from 'react';
+import {
+	FONT_FAMILY,
+	resolveSectionOrder,
+	SECTION_META,
+	type CoreSectionKey,
+	type ResumeData,
+} from '@/lib/types';
 import { getTemplate } from '@/lib/templates/registry';
 
 // Renders a resume document from data + template. Used for live preview and
@@ -208,49 +215,56 @@ function SingleColumn({
 				</div>
 			</header>
 
-			{p.summary && (
-				<>
-					<SectionTitle accent={accent}>Summary</SectionTitle>
-					<p className="text-[11.5px] leading-snug">{p.summary}</p>
-				</>
-			)}
-
-			{data.experience.length > 0 && (
-				<>
-					<SectionTitle accent={accent}>Experience</SectionTitle>
-					<ExperienceBlock data={data} />
-				</>
-			)}
-
-			{data.education.length > 0 && (
-				<>
-					<SectionTitle accent={accent}>Education</SectionTitle>
-					<EducationBlock data={data} />
-				</>
-			)}
-
-			{data.skills.length > 0 && (
-				<>
-					<SectionTitle accent={accent}>Skills</SectionTitle>
-					<SkillsBlock data={data} accent={accent} />
-				</>
-			)}
-
-			{data.projects.length > 0 && (
-				<>
-					<SectionTitle accent={accent}>Projects</SectionTitle>
-					{data.projects.map((pr) => (
-						<div key={pr.id} className="mb-1.5">
-							<span className="font-bold text-[12px]">{pr.name}</span>
-							<span className="text-[11px] opacity-80"> — {pr.description}</span>
-						</div>
-					))}
-				</>
-			)}
+			{orderedCoreBlocks(data, accent, ['summary', 'experience', 'education', 'skills', 'projects'])}
 
 			<CustomBlocks data={data} accent={accent} />
 		</div>
 	);
+}
+
+/** Renders the requested core sections in the user's chosen order. */
+function orderedCoreBlocks(data: ResumeData, accent: string, allowed: CoreSectionKey[]) {
+	const p = data.personal;
+	const blocks: Record<CoreSectionKey, ReactNode> = {
+		summary: p.summary ? (
+			<>
+				<SectionTitle accent={accent}>Summary</SectionTitle>
+				<p className="text-[11.5px] leading-snug">{p.summary}</p>
+			</>
+		) : null,
+		experience: data.experience.length > 0 ? (
+			<>
+				<SectionTitle accent={accent}>Experience</SectionTitle>
+				<ExperienceBlock data={data} />
+			</>
+		) : null,
+		education: data.education.length > 0 ? (
+			<>
+				<SectionTitle accent={accent}>Education</SectionTitle>
+				<EducationBlock data={data} />
+			</>
+		) : null,
+		skills: data.skills.length > 0 ? (
+			<>
+				<SectionTitle accent={accent}>Skills</SectionTitle>
+				<SkillsBlock data={data} accent={accent} />
+			</>
+		) : null,
+		projects: data.projects.length > 0 ? (
+			<>
+				<SectionTitle accent={accent}>Projects</SectionTitle>
+				{data.projects.map((pr) => (
+					<div key={pr.id} className="mb-1.5">
+						<span className="font-bold text-[12px]">{pr.name}</span>
+						<span className="text-[11px] opacity-80"> — {pr.description}</span>
+					</div>
+				))}
+			</>
+		) : null,
+	};
+	return resolveSectionOrder(data)
+		.filter((k) => allowed.includes(k))
+		.map((k) => <div key={k}>{blocks[k]}</div>);
 }
 
 function TwoColumn({ data, accent, fontFamily }: { data: ResumeData; accent: string; fontFamily: string }) {
@@ -306,25 +320,7 @@ function TwoColumn({ data, accent, fontFamily }: { data: ResumeData; accent: str
 			</aside>
 
 			<main className="flex-1 p-6">
-				{p.summary && (
-					<>
-						<SectionTitle accent={accent}>Profile</SectionTitle>
-						<p className="text-[11.5px] leading-snug">{p.summary}</p>
-					</>
-				)}
-				<SectionTitle accent={accent}>Experience</SectionTitle>
-				<ExperienceBlock data={data} />
-				{data.projects.length > 0 && (
-					<>
-						<SectionTitle accent={accent}>Projects</SectionTitle>
-						{data.projects.map((pr) => (
-							<div key={pr.id} className="mb-1.5">
-								<span className="font-bold text-[12px]">{pr.name}</span>
-								<span className="text-[11px] opacity-80"> — {pr.description}</span>
-							</div>
-						))}
-					</>
-				)}
+				{orderedCoreBlocks(data, accent, ['summary', 'experience', 'projects'])}
 				<CustomBlocks data={data} accent={accent} />
 			</main>
 		</div>

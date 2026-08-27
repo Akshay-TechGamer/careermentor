@@ -104,6 +104,24 @@ export const SECTION_META: Record<SectionType, SectionMeta> = {
 
 export const SECTION_ORDER: SectionType[] = ['links', 'certifications', 'languages', 'awards', 'custom'];
 
+export type CoreSectionKey = 'summary' | 'experience' | 'education' | 'skills' | 'projects';
+
+export const CORE_SECTION_LABELS: Record<CoreSectionKey, string> = {
+	summary: 'Summary',
+	experience: 'Experience',
+	education: 'Education',
+	skills: 'Skills',
+	projects: 'Projects',
+};
+
+export const DEFAULT_SECTION_ORDER: CoreSectionKey[] = [
+	'summary',
+	'experience',
+	'education',
+	'skills',
+	'projects',
+];
+
 export interface ResumeData {
 	personal: PersonalInfo;
 	experience: ExperienceItem[];
@@ -113,8 +131,20 @@ export interface ResumeData {
 	certifications: CertificationItem[];
 	/** User-added extra sections (certifications, languages, links, custom…). */
 	sections?: CustomSection[];
+	/** Order of the core sections in the rendered resume. */
+	sectionOrder?: CoreSectionKey[];
 	/** Optional per-resume design overrides on top of the chosen template. */
 	style?: ResumeStyle;
+}
+
+/** The section order with any missing/legacy keys appended in default order. */
+export function resolveSectionOrder(data: ResumeData): CoreSectionKey[] {
+	const saved = data.sectionOrder ?? [];
+	const merged = [...saved];
+	for (const k of DEFAULT_SECTION_ORDER) {
+		if (!merged.includes(k)) merged.push(k);
+	}
+	return merged;
 }
 
 export const FONT_FAMILY: Record<FontChoice, string> = {
