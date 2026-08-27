@@ -442,6 +442,65 @@ function filledProjects(data: ResumeData) {
 	);
 }
 
+/* Full project entries: name + link, dates right, role · tech, description,
+   highlight bullets. Shared by every layout so no field silently drops. */
+function ProjectsBlock({ data, accent }: { data: ResumeData; accent: string }) {
+	return (
+		<>
+			{filledProjects(data).map((pr) => {
+				const dates = [pr.start, pr.end].filter(Boolean).join(' – ');
+				const bullets = (pr.bullets ?? []).filter(Boolean);
+				return (
+					<div key={pr.id} className="mb-2.5">
+						<div className="flex justify-between items-baseline gap-2">
+							<span className="text-[calc(12px_*_var(--rz-fs))]">
+								<span className="font-bold">{pr.name || 'Project'}</span>
+								{pr.link && (
+									<a
+										href={pr.link.startsWith('http') ? pr.link : `https://${pr.link}`}
+										className="font-normal text-[calc(10.5px_*_var(--rz-fs))] ml-2 break-all"
+										style={{ color: accent }}
+									>
+										{pr.link.replace(/^https?:\/\//, '')}
+									</a>
+								)}
+							</span>
+							{dates && (
+								<span className="text-[calc(10.5px_*_var(--rz-fs))] opacity-70 whitespace-nowrap font-[family-name:var(--font-mono)]">
+									{dates}
+								</span>
+							)}
+						</div>
+						{(pr.role || pr.tech) && (
+							<div className="text-[calc(11px_*_var(--rz-fs))]">
+								{pr.role && <span className="opacity-80">{pr.role}</span>}
+								{pr.role && pr.tech && <span className="opacity-40"> · </span>}
+								{pr.tech && (
+									<span className="font-medium" style={{ color: accent }}>
+										{pr.tech}
+									</span>
+								)}
+							</div>
+						)}
+						{pr.description && (
+							<p className="text-[calc(11px_*_var(--rz-fs))] opacity-90 leading-snug">{pr.description}</p>
+						)}
+						{bullets.length > 0 && (
+							<ul className="mt-0.5 list-disc pl-4 space-y-0.5">
+								{bullets.map((b, i) => (
+									<li key={i} className="text-[calc(11px_*_var(--rz-fs))] leading-snug">
+										{b}
+									</li>
+								))}
+							</ul>
+						)}
+					</div>
+				);
+			})}
+		</>
+	);
+}
+
 /** Renders the requested core sections in the user's chosen order. */
 function orderedCoreBlocks(data: ResumeData, accent: string, allowed: CoreSectionKey[], variant?: TitleVariant) {
 	const p = data.personal;
@@ -473,56 +532,7 @@ function orderedCoreBlocks(data: ResumeData, accent: string, allowed: CoreSectio
 		projects: filledProjects(data).length > 0 ? (
 			<>
 				<SectionTitle accent={accent} variant={variant}>Projects</SectionTitle>
-				{filledProjects(data).map((pr) => {
-					const dates = [pr.start, pr.end].filter(Boolean).join(' – ');
-					const bullets = (pr.bullets ?? []).filter(Boolean);
-					return (
-						<div key={pr.id} className="mb-2.5">
-							<div className="flex justify-between items-baseline gap-2">
-								<span className="text-[calc(12px_*_var(--rz-fs))]">
-									<span className="font-bold">{pr.name || 'Project'}</span>
-									{pr.link && (
-										<a
-											href={pr.link.startsWith('http') ? pr.link : `https://${pr.link}`}
-											className="font-normal text-[calc(10.5px_*_var(--rz-fs))] ml-2"
-											style={{ color: accent }}
-										>
-											{pr.link.replace(/^https?:\/\//, '')}
-										</a>
-									)}
-								</span>
-								{dates && (
-									<span className="text-[calc(10.5px_*_var(--rz-fs))] opacity-70 whitespace-nowrap font-[family-name:var(--font-mono)]">
-										{dates}
-									</span>
-								)}
-							</div>
-							{(pr.role || pr.tech) && (
-								<div className="text-[calc(11px_*_var(--rz-fs))]">
-									{pr.role && <span className="opacity-80">{pr.role}</span>}
-									{pr.role && pr.tech && <span className="opacity-40"> · </span>}
-									{pr.tech && (
-										<span className="font-medium" style={{ color: accent }}>
-											{pr.tech}
-										</span>
-									)}
-								</div>
-							)}
-							{pr.description && (
-								<p className="text-[calc(11px_*_var(--rz-fs))] opacity-90 leading-snug">{pr.description}</p>
-							)}
-							{bullets.length > 0 && (
-								<ul className="mt-0.5 list-disc pl-4 space-y-0.5">
-									{bullets.map((b, i) => (
-										<li key={i} className="text-[calc(11px_*_var(--rz-fs))] leading-snug">
-											{b}
-										</li>
-									))}
-								</ul>
-							)}
-						</div>
-					);
-				})}
+				<ProjectsBlock data={data} accent={accent} />
 			</>
 		) : null,
 	};
@@ -797,6 +807,11 @@ function LabelLeft({ data, accent, fontFamily }: { data: ResumeData; accent: str
 					<SkillGrid data={data} accent={accent} />
 				</Row>
 			)}
+			{filledProjects(data).length > 0 && (
+				<Row label="Projects">
+					<ProjectsBlock data={data} accent={accent} />
+				</Row>
+			)}
 			{customs.map((sec) => (
 				<Row key={sec.id} label={sec.heading}>
 					<div className="space-y-0.5">
@@ -916,19 +931,7 @@ function RailCards({ data, accent, fontFamily }: { data: ResumeData; accent: str
 					{filledProjects(data).length > 0 && (
 						<div style={{ marginTop: 'var(--rz-gap, 16px)' }}>
 							<h2 className="text-[calc(16px_*_var(--rz-fs))] font-extrabold mb-2">Projects</h2>
-							{filledProjects(data).map((pr) => (
-								<div key={pr.id} className="mb-2">
-									<span className="font-bold text-[calc(11.5px_*_var(--rz-fs))]">{pr.name}</span>
-									{pr.tech && (
-										<span className="text-[calc(10.5px_*_var(--rz-fs))] ml-2" style={{ color: accent }}>
-											{pr.tech}
-										</span>
-									)}
-									{pr.description && (
-										<p className="text-[calc(11px_*_var(--rz-fs))] opacity-90 leading-snug">{pr.description}</p>
-									)}
-								</div>
-							))}
+							<ProjectsBlock data={data} accent={accent} />
 						</div>
 					)}
 				</main>
@@ -1292,14 +1295,7 @@ function BoxedTable({ data, accent, fontFamily }: { data: ResumeData; accent: st
 				<>
 					<Bar>Projects</Bar>
 					<Box>
-						{filledProjects(data).map((pr) => (
-							<div key={pr.id} className="mb-1.5">
-								<span className="font-bold text-[calc(11px_*_var(--rz-fs))]">{pr.name}</span>
-								{pr.description && (
-									<span className="text-[calc(10.5px_*_var(--rz-fs))] opacity-85"> — {pr.description}</span>
-								)}
-							</div>
-						))}
+						<ProjectsBlock data={data} accent={accent} />
 					</Box>
 				</>
 			)}
@@ -1501,6 +1497,11 @@ function DarkFrame({ data, accent, fontFamily }: { data: ResumeData; accent: str
 						</div>
 					</Row>
 				)}
+				{filledProjects(data).length > 0 && (
+					<Row label="Projects">
+						<ProjectsBlock data={data} accent="#ffffff" />
+					</Row>
+				)}
 				{customs.map((sec) => (
 					<Row key={sec.id} label={sec.heading}>
 						<div className="space-y-0.5">
@@ -1590,6 +1591,7 @@ function Editorial({ data, accent, fontFamily }: { data: ResumeData; accent: str
 	if (data.experience.length > 0) nums.push('experience');
 	if (data.education.length > 0) nums.push('education');
 	if (data.skills.length > 0) nums.push('skills');
+	if (filledProjects(data).length > 0) nums.push('projects');
 	customs.forEach((sec) => nums.push(sec.id));
 	const NumTitle = ({ id, children }: { id: string; children: ReactNode }) => (
 		<h2
@@ -1652,6 +1654,12 @@ function Editorial({ data, accent, fontFamily }: { data: ResumeData; accent: str
 					</div>
 				</>
 			)}
+			{filledProjects(data).length > 0 && (
+				<>
+					<NumTitle id="projects">Projects</NumTitle>
+					<ProjectsBlock data={data} accent={accent} />
+				</>
+			)}
 			{customs.map((sec) => (
 				<div key={sec.id}>
 					<NumTitle id={sec.id}>{sec.heading}</NumTitle>
@@ -1682,6 +1690,7 @@ function NumberedMono({ data, accent, fontFamily }: { data: ResumeData; accent: 
 	if (data.experience.length > 0) nums.push('experience');
 	if (data.education.length > 0) nums.push('education');
 	if (data.skills.length > 0) nums.push('skills');
+	if (filledProjects(data).length > 0) nums.push('projects');
 	customs.forEach((sec) => nums.push(sec.id));
 	const MonoTitle = ({ id, children }: { id: string; children: ReactNode }) => (
 		<h2
@@ -1759,6 +1768,12 @@ function NumberedMono({ data, accent, fontFamily }: { data: ResumeData; accent: 
 				<>
 					<MonoTitle id="skills">Skills</MonoTitle>
 					<SkillGrid data={data} accent={accent} />
+				</>
+			)}
+			{filledProjects(data).length > 0 && (
+				<>
+					<MonoTitle id="projects">Projects</MonoTitle>
+					<ProjectsBlock data={data} accent={accent} />
 				</>
 			)}
 			{customs.map((sec) => (
@@ -1929,12 +1944,7 @@ function MonogramBand({ data, accent, fontFamily }: { data: ResumeData; accent: 
 					{filledProjects(data).length > 0 && (
 						<>
 							<SectionTitle accent={accent}>Projects</SectionTitle>
-							{filledProjects(data).map((pr) => (
-								<div key={pr.id} className="mb-1.5 text-[calc(11px_*_var(--rz-fs))]">
-									<span className="font-bold">{pr.name}</span>
-									{pr.description && <span className="opacity-80"> — {pr.description}</span>}
-								</div>
-							))}
+							<ProjectsBlock data={data} accent={accent} />
 						</>
 					)}
 				</main>
@@ -2066,12 +2076,7 @@ function Kicker({ data, accent, fontFamily }: { data: ResumeData; accent: string
 				{filledProjects(data).length > 0 && (
 					<>
 						<SectionTitle accent={accent}>Projects</SectionTitle>
-						{filledProjects(data).map((pr) => (
-							<div key={pr.id} className="mb-1.5 text-[calc(11px_*_var(--rz-fs))]">
-								<span className="font-bold">{pr.name}</span>
-								{pr.description && <span className="opacity-80"> — {pr.description}</span>}
-							</div>
-						))}
+						<ProjectsBlock data={data} accent={accent} />
 					</>
 				)}
 			</main>
