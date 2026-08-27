@@ -6,12 +6,14 @@ import type { User } from '@supabase/supabase-js';
 import { FileText, Trash2, Download, Loader2, Plus, UserCircle2, ArrowRight, Copy, Pencil } from 'lucide-react';
 import { getCurrentUser, signOut } from '@/lib/data/authRepo';
 import { listResumes, deleteResume, duplicateResume, renameResume } from '@/lib/data/resumesRepo';
+import { clearDraft } from '@/lib/data/draftStore';
 import type { ResumeRow } from '@/lib/types';
 
 export default function ProfilePage() {
 	const [user, setUser] = useState<User | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [resumes, setResumes] = useState<ResumeRow[]>([]);
+	const [clearing, setClearing] = useState(false);
 
 	useEffect(() => {
 		getCurrentUser().then((u) => {
@@ -55,9 +57,22 @@ export default function ProfilePage() {
 	};
 
 	const onClear = async () => {
-		await signOut();
-		setUser(null);
-		setResumes([]);
+		const ok = window.confirm(
+			'Start fresh? This permanently deletes ALL your saved resumes and the current draft on this device. This cannot be undone.'
+		);
+		if (!ok) {
+			return;
+		}
+		setClearing(true);
+		try {
+			await Promise.all(resumes.map((r) => deleteResume(r.id)));
+			clearDraft();
+			await signOut();
+			setUser(null);
+			setResumes([]);
+		} finally {
+			setClearing(false);
+		}
 	};
 
 	if (loading) {
@@ -140,14 +155,20 @@ export default function ProfilePage() {
 			<div className="mt-10 pt-6 border-t border-outline-variant/60 space-y-3">
 				<h2 className="font-bold">Your data</h2>
 				<p className="text-sm text-on-surface-variant">
-					Resumes are tied to this browser. Export a copy, or clear everything.
+					Resumes are tied to this browser. Export a copy first, or start fresh — clearing
+					deletes every saved resume and the current draft for good.
 				</p>
 				<div className="flex gap-3 flex-wrap">
-					<button className="btn btn-outline" onClick={exportData}>
+					<button className="btn btn-outline" onClick={exportData} disabled={clearing}>
 						<Download className="w-4 h-4" /> Export my data
 					</button>
-					<button className="btn btn-ghost text-danger" onClick={onClear}>
-						<Trash2 className="w-4 h-4" /> Clear guest session
+					<button className="btn btn-ghost text-danger" onClick={onClear} disabled={clearing}>
+						{clearing ? (
+							<Loader2 className="w-4 h-4 animate-spin" />
+						) : (
+							<Trash2 className="w-4 h-4" />
+						)}
+						Clear all &amp; start fresh
 					</button>
 				</div>
 			</div>
