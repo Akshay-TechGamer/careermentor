@@ -12,6 +12,25 @@ export async function getCurrentUser(): Promise<User | null> {
 	return data.user ?? null;
 }
 
+/** Signs the visitor in as an anonymous guest (per-device, no email). */
+export async function signInAnonymously(): Promise<User> {
+	const supabase = getSupabase();
+	const { data, error } = await supabase.auth.signInAnonymously();
+	if (error || !data.user) {
+		throw new Error(error?.message ?? 'Could not start a session');
+	}
+	return data.user;
+}
+
+/** Returns the current user, creating an anonymous guest session if none. */
+export async function ensureSession(): Promise<User> {
+	const existing = await getCurrentUser();
+	if (existing) {
+		return existing;
+	}
+	return signInAnonymously();
+}
+
 /** Sends a 6-digit code to the email. Creates the user if new. */
 export async function sendEmailCode(email: string): Promise<void> {
 	const supabase = getSupabase();

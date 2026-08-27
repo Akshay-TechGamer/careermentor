@@ -1,88 +1,32 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
-import { Mail, LogOut, FileText, Trash2, Download, Loader2, Plus } from 'lucide-react';
-import { getCurrentUser, sendEmailCode, verifyEmailCode, signOut } from '@/lib/data/authRepo';
+import { FileText, Trash2, Download, Loader2, Plus, UserCircle2, ArrowRight } from 'lucide-react';
+import { getCurrentUser, signOut } from '@/lib/data/authRepo';
 import { listResumes, deleteResume } from '@/lib/data/resumesRepo';
 import type { ResumeRow } from '@/lib/types';
 
-function ProfileInner() {
-	const router = useRouter();
-	const params = useSearchParams();
-	const next = params.get('next');
-
+export default function ProfilePage() {
 	const [user, setUser] = useState<User | null>(null);
 	const [loading, setLoading] = useState(true);
-	const [step, setStep] = useState<'email' | 'code'>('email');
-	const [email, setEmail] = useState('');
-	const [code, setCode] = useState('');
-	const [busy, setBusy] = useState(false);
-	const [error, setError] = useState<string | null>(null);
 	const [resumes, setResumes] = useState<ResumeRow[]>([]);
 
 	useEffect(() => {
 		getCurrentUser().then((u) => {
 			setUser(u);
 			setLoading(false);
-			if (u) loadResumes(u.id);
+			if (u) {
+				listResumes(u.id)
+					.then(setResumes)
+					.catch(() => undefined);
+			}
 		});
 	}, []);
 
-	const loadResumes = async (userId: string) => {
-		try {
-			setResumes(await listResumes(userId));
-		} catch {
-			/* ignore */
-		}
-	};
-
-	const onSendCode = async () => {
-		setError(null);
-		if (!email.trim()) {
-			setError('Enter your email');
-			return;
-		}
-		setBusy(true);
-		try {
-			await sendEmailCode(email);
-			setStep('code');
-		} catch (e) {
-			setError(e instanceof Error ? e.message : 'Could not send code');
-		} finally {
-			setBusy(false);
-		}
-	};
-
-	const onVerify = async () => {
-		setError(null);
-		setBusy(true);
-		try {
-			const u = await verifyEmailCode(email, code);
-			setUser(u);
-			loadResumes(u.id);
-			if (next) router.push(next);
-		} catch (e) {
-			setError(e instanceof Error ? e.message : 'Invalid code');
-		} finally {
-			setBusy(false);
-		}
-	};
-
-	const onSignOut = async () => {
-		await signOut();
-		setUser(null);
-		setResumes([]);
-		setStep('email');
-		setCode('');
-	};
-
 	const exportData = () => {
-		const blob = new Blob([JSON.stringify({ user: user?.email, resumes }, null, 2)], {
-			type: 'application/json',
-		});
+		const blob = new Blob([JSON.stringify({ resumes }, null, 2)], { type: 'application/json' });
 		const url = URL.createObjectURL(blob);
 		const a = document.createElement('a');
 		a.href = url;
@@ -96,6 +40,12 @@ function ProfileInner() {
 		setResumes((r) => r.filter((x) => x.id !== id));
 	};
 
+	const onClear = async () => {
+		await signOut();
+		setUser(null);
+		setResumes([]);
+	};
+
 	if (loading) {
 		return (
 			<div className="flex justify-center py-32 text-outline">
@@ -104,75 +54,42 @@ function ProfileInner() {
 		);
 	}
 
-	/* ---- Signed out: auth ---- */
+	/* No guest session yet */
 	if (!user) {
 		return (
-			<div className="mx-auto max-w-md px-4 py-12">
-				<div className="card p-6 md:p-8">
-					<h1 className="text-2xl font-bold">Sign in</h1>
-					<p className="mt-1 text-on-surface-variant">
-						We&apos;ll email you a 6-digit code. No password needed.
-					</p>
-
-					{step === 'email' ? (
-						<div className="mt-6">
-							<label className="field-label">Email</label>
-							<input
-								className="input"
-								type="email"
-								placeholder="you@example.com"
-								value={email}
-								onChange={(e) => setEmail(e.target.value)}
-								onKeyDown={(e) => e.key === 'Enter' && onSendCode()}
-							/>
-							<button className="btn btn-primary w-full mt-4" onClick={onSendCode} disabled={busy}>
-								{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
-								Send code
-							</button>
-						</div>
-					) : (
-						<div className="mt-6">
-							<label className="field-label">Enter the 6-digit code sent to {email}</label>
-							<input
-								className="input font-[family-name:var(--font-mono)] tracking-[0.4em] text-center text-lg"
-								inputMode="numeric"
-								maxLength={6}
-								placeholder="______"
-								value={code}
-								onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-								onKeyDown={(e) => e.key === 'Enter' && onVerify()}
-							/>
-							<button className="btn btn-primary w-full mt-4" onClick={onVerify} disabled={busy}>
-								{busy && <Loader2 className="w-4 h-4 animate-spin" />} Verify &amp; sign in
-							</button>
-							<button className="btn btn-ghost w-full mt-2" onClick={() => setStep('email')}>
-								Use a different email
-							</button>
-						</div>
-					)}
-
-					{error && <p className="mt-4 text-danger text-sm font-semibold">{error}</p>}
+			<div className="mx-auto max-w-lg px-4 py-16 text-center">
+				<div className="w-14 h-14 rounded-full bg-surface-container text-primary flex items-center justify-center mx-auto">
+					<UserCircle2 className="w-8 h-8" />
 				</div>
+				<h1 className="mt-4 text-2xl font-bold">No account needed</h1>
+				<p className="mt-2 text-on-surface-variant">
+					Build a resume and hit <span className="font-semibold">Save</span> — we&apos;ll keep it
+					on this device as a guest. No email, no password.
+				</p>
+				<Link href="/build" className="btn btn-primary mt-6 mx-auto">
+					Start building <ArrowRight className="w-4 h-4" />
+				</Link>
 			</div>
 		);
 	}
 
-	/* ---- Signed in: dashboard ---- */
+	/* Guest dashboard */
 	return (
 		<div className="mx-auto max-w-3xl px-4 py-10">
 			<div className="flex items-center justify-between gap-4 flex-wrap">
-				<div>
-					<h1 className="text-2xl font-bold">My resumes</h1>
-					<p className="text-on-surface-variant">{user.email}</p>
+				<div className="flex items-center gap-3">
+					<span className="w-11 h-11 rounded-full bg-surface-container text-primary flex items-center justify-center">
+						<UserCircle2 className="w-6 h-6" />
+					</span>
+					<div>
+						<h1 className="text-2xl font-bold leading-tight">My resumes</h1>
+						<span className="label-caps text-on-surface-variant">Guest · saved on this device</span>
+					</div>
 				</div>
-				<button className="btn btn-ghost" onClick={onSignOut}>
-					<LogOut className="w-4 h-4" /> Sign out
-				</button>
+				<Link href="/build" className="btn btn-primary">
+					<Plus className="w-4 h-4" /> New resume
+				</Link>
 			</div>
-
-			<Link href="/build" className="btn btn-primary mt-6">
-				<Plus className="w-4 h-4" /> New resume
-			</Link>
 
 			<div className="mt-6 space-y-3">
 				{resumes.length === 0 && (
@@ -191,30 +108,31 @@ function ProfileInner() {
 								</span>
 							</span>
 						</Link>
-						<button className="btn-ghost p-2 rounded text-danger" onClick={() => onDelete(r.id)} aria-label="Delete resume">
+						<button
+							className="btn-ghost p-2 rounded text-danger"
+							onClick={() => onDelete(r.id)}
+							aria-label="Delete resume"
+						>
 							<Trash2 className="w-5 h-5" />
 						</button>
 					</div>
 				))}
 			</div>
 
-			<div className="mt-10 pt-6 border-t border-outline-variant/60">
+			<div className="mt-10 pt-6 border-t border-outline-variant/60 space-y-3">
 				<h2 className="font-bold">Your data</h2>
-				<p className="text-sm text-on-surface-variant mt-1">
-					Download everything we store for your account.
+				<p className="text-sm text-on-surface-variant">
+					Resumes are tied to this browser. Export a copy, or clear everything.
 				</p>
-				<button className="btn btn-outline mt-3" onClick={exportData}>
-					<Download className="w-4 h-4" /> Export my data
-				</button>
+				<div className="flex gap-3 flex-wrap">
+					<button className="btn btn-outline" onClick={exportData}>
+						<Download className="w-4 h-4" /> Export my data
+					</button>
+					<button className="btn btn-ghost text-danger" onClick={onClear}>
+						<Trash2 className="w-4 h-4" /> Clear guest session
+					</button>
+				</div>
 			</div>
 		</div>
-	);
-}
-
-export default function ProfilePage() {
-	return (
-		<Suspense fallback={<div className="py-32 text-center text-outline">Loading…</div>}>
-			<ProfileInner />
-		</Suspense>
 	);
 }

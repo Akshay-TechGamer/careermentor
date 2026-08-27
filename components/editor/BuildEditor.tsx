@@ -1,14 +1,14 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import type { User } from '@supabase/supabase-js';
 import { Eye, Download, BarChart3, Check, Loader2, X } from 'lucide-react';
 import type { ResumeData } from '@/lib/types';
 import { getTemplate } from '@/lib/templates/registry';
 import { analyzeResume } from '@/lib/analyzer/analyze';
-import { getCurrentUser } from '@/lib/data/authRepo';
+import { ensureSession, getCurrentUser } from '@/lib/data/authRepo';
 import { createResume, getResume, updateResume } from '@/lib/data/resumesRepo';
 import { loadDraft, newDraft, saveDraft, type Draft } from '@/lib/data/draftStore';
 import { CollapsibleCard } from './CollapsibleCard';
@@ -24,7 +24,6 @@ import { ResumePaper } from '@/components/resume/ResumePaper';
 type SaveState = 'idle' | 'saving' | 'saved';
 
 export function BuildEditor() {
-	const router = useRouter();
 	const params = useSearchParams();
 	const [draft, setDraft] = useState<Draft | null>(null);
 	const [user, setUser] = useState<User | null>(null);
@@ -99,12 +98,11 @@ export function BuildEditor() {
 
 	const onSave = async () => {
 		if (!draft) return;
-		if (!user) {
-			router.push('/profile?next=/build');
-			return;
-		}
 		setSaveState('saving');
 		try {
+			// Start (or reuse) a guest session so saving just works — no email.
+			const u = user ?? (await ensureSession());
+			if (!user) setUser(u);
 			if (draft.id) {
 				await updateResume(draft.id, {
 					title: draft.title,
@@ -114,7 +112,7 @@ export function BuildEditor() {
 				});
 			} else {
 				const row = await createResume({
-					userId: user.id,
+					userId: u.id,
 					title: draft.title,
 					templateSlug: draft.templateSlug,
 					data: draft.data,
