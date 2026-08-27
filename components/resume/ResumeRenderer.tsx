@@ -1102,8 +1102,19 @@ function CenterSplit({ data, accent, fontFamily }: { data: ResumeData; accent: s
 					{data.skills.length > 0 && (
 						<div>
 							<RailHeading>Skills</RailHeading>
-							<div className="text-left">
-								<SkillBars data={data} accent={accent} />
+							<div className="space-y-2.5">
+								{data.skills.map((s, i) => (
+									<div key={i}>
+										<div className="text-[calc(10.5px_*_var(--rz-fs))] mb-1">{s}</div>
+										<div
+											className="h-[2px] mx-auto"
+											style={{
+												width: showLevels(data) ? `${skillLevelFor(data, s) * 20}%` : '100%',
+												background: accent,
+											}}
+										/>
+									</div>
+								))}
 							</div>
 						</div>
 					)}
@@ -1112,15 +1123,26 @@ function CenterSplit({ data, accent, fontFamily }: { data: ResumeData; accent: s
 						.map((sec) => (
 							<div key={sec.id}>
 								<RailHeading>{sec.heading}</RailHeading>
-								<div className="space-y-1 text-[calc(10.5px_*_var(--rz-fs))]">
+								<div className="space-y-2.5 text-[calc(10.5px_*_var(--rz-fs))]">
 									{sec.items
 										.filter((it) => it.primary || it.secondary)
 										.map((it) => (
 											<div key={it.id}>
-												<span className="font-semibold">{it.primary}</span>
-												{it.secondary && (
-													<span className="opacity-70"> — {it.secondary}</span>
-												)}
+												<div>
+													<span className="font-semibold">{it.primary}</span>
+													{sec.type !== 'languages' && it.secondary && (
+														<span className="opacity-70"> — {it.secondary}</span>
+													)}
+												</div>
+												{sec.type === 'languages' ? (
+													<div
+														className="h-[2px] mx-auto mt-1"
+														style={{
+															width: `${(languageDots(it.secondary) ?? 5) * 20}%`,
+															background: accent,
+														}}
+													/>
+												) : null}
 											</div>
 										))}
 								</div>
