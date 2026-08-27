@@ -1,7 +1,15 @@
 // Resume template catalog. Each template maps to a base layout + accent so one
 // renderer can produce many distinct looks from the same resume data.
 
-export type TemplateLayout = 'classic' | 'twoColumn' | 'academic';
+export type TemplateLayout =
+	| 'classic'
+	| 'twoColumn'
+	| 'academic'
+	| 'headerBand'
+	| 'sidebarLeft'
+	| 'labelLeft';
+
+const PHOTO_LAYOUTS: TemplateLayout[] = ['twoColumn', 'headerBand'];
 
 export type TemplateCategory =
 	| 'Professional'
@@ -204,11 +212,153 @@ const RAW: Omit<Template, 'hasPhoto'>[] = [
 		accent: '#0369a1',
 		headingFont: 'display',
 	},
+
+	// City collection (inspired by the classic resume families)
+	{
+		slug: 'amsterdam',
+		name: 'Amsterdam',
+		category: 'Professional',
+		tags: ['Sidebar', 'Skills', 'Balanced'],
+		blurb: 'A calm left-sidebar layout with rated skills and clear sections.',
+		layout: 'sidebarLeft',
+		accent: '#334155',
+		headingFont: 'display',
+	},
+	{
+		slug: 'london',
+		name: 'London',
+		category: 'Professional',
+		tags: ['Label-left', 'Editorial', 'Clean'],
+		blurb: 'An editorial layout with section labels down the left margin.',
+		layout: 'labelLeft',
+		accent: '#1d4ed8',
+		headingFont: 'display',
+	},
+	{
+		slug: 'berlin',
+		name: 'Berlin',
+		category: 'Executive',
+		tags: ['Bold name', 'Sidebar', 'Strong'],
+		blurb: 'A bold, confident sidebar layout led by a large name.',
+		layout: 'sidebarLeft',
+		accent: '#111c2d',
+		headingFont: 'display',
+	},
+	{
+		slug: 'paris',
+		name: 'Paris',
+		category: 'Creative',
+		tags: ['Photo', 'Two-column', 'Warm'],
+		blurb: 'A warm two-column layout with a photo and colored heading.',
+		layout: 'twoColumn',
+		accent: '#9a3412',
+		headingFont: 'display',
+	},
+	{
+		slug: 'oslo',
+		name: 'Oslo',
+		category: 'Professional',
+		tags: ['Header band', 'Photo', 'Centered'],
+		blurb: 'A striking colored header band with a centered photo and name.',
+		layout: 'headerBand',
+		accent: '#1f2937',
+		headingFont: 'display',
+	},
+	{
+		slug: 'madrid',
+		name: 'Madrid',
+		category: 'Professional',
+		tags: ['Single column', 'Fresh', 'Readable'],
+		blurb: 'A fresh single-column layout that reads beautifully.',
+		layout: 'classic',
+		accent: '#0f766e',
+		headingFont: 'display',
+	},
+	{
+		slug: 'milan',
+		name: 'Milan',
+		category: 'Creative',
+		tags: ['Label-left', 'Stylish', 'Modern'],
+		blurb: 'A stylish label-left layout for creative professionals.',
+		layout: 'labelLeft',
+		accent: '#7c3aed',
+		headingFont: 'display',
+	},
+	{
+		slug: 'geneva',
+		name: 'Geneva',
+		category: 'Executive',
+		tags: ['Sidebar', 'Refined', 'Corporate'],
+		blurb: 'A refined corporate sidebar layout for senior roles.',
+		layout: 'sidebarLeft',
+		accent: '#1e3a8a',
+		headingFont: 'display',
+	},
+	{
+		slug: 'copenhagen',
+		name: 'Copenhagen',
+		category: 'Creative',
+		tags: ['Header band', 'Modern', 'Photo'],
+		blurb: 'A modern colored-header layout with a friendly feel.',
+		layout: 'headerBand',
+		accent: '#0e7490',
+		headingFont: 'display',
+	},
+	{
+		slug: 'rome',
+		name: 'Rome',
+		category: 'Executive',
+		tags: ['Classic', 'Authoritative', 'Serif-ready'],
+		blurb: 'A classic, authoritative single-column layout.',
+		layout: 'classic',
+		accent: '#991b1b',
+		headingFont: 'display',
+	},
+	{
+		slug: 'chicago',
+		name: 'Chicago',
+		category: 'Technical',
+		tags: ['Two-column', 'Skills-first', 'Structured'],
+		blurb: 'A structured two-column layout that leads with skills.',
+		layout: 'twoColumn',
+		accent: '#1d4ed8',
+		headingFont: 'display',
+	},
+	{
+		slug: 'dublin',
+		name: 'Dublin',
+		category: 'Student',
+		tags: ['Header band', 'Approachable', 'Entry level'],
+		blurb: 'An approachable header-band layout for students and grads.',
+		layout: 'headerBand',
+		accent: '#059669',
+		headingFont: 'display',
+	},
+	{
+		slug: 'prague',
+		name: 'Prague',
+		category: 'Technical',
+		tags: ['Label-left', 'Precise', 'Developer'],
+		blurb: 'A precise label-left layout for engineers and developers.',
+		layout: 'labelLeft',
+		accent: '#0369a1',
+		headingFont: 'display',
+	},
+	{
+		slug: 'rio',
+		name: 'Rio',
+		category: 'Creative',
+		tags: ['Two-column', 'Vibrant', 'Photo'],
+		blurb: 'A vibrant two-column layout that brings energy to your resume.',
+		layout: 'twoColumn',
+		accent: '#ea580c',
+		headingFont: 'display',
+	},
 ];
 
 export const TEMPLATES: Template[] = RAW.map((t) => ({
 	...t,
-	hasPhoto: t.layout === 'twoColumn',
+	hasPhoto: PHOTO_LAYOUTS.includes(t.layout),
 }));
 
 export function getTemplate(slug: string): Template {

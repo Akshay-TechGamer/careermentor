@@ -56,7 +56,13 @@ export function BuildEditor() {
 			}
 			const existing = loadDraft();
 			if (existing) {
-				setDraft(templateParam ? { ...existing, templateSlug: templateParam } : existing);
+				// Picking a template applies its full design — clear any prior
+				// layout/accent/font overrides so the new template shows through.
+				setDraft(
+					templateParam && templateParam !== existing.templateSlug
+						? { ...existing, templateSlug: templateParam, data: { ...existing.data, style: undefined } }
+						: existing,
+				);
 			} else {
 				setDraft(newDraft(templateParam ?? 'the-professional', true));
 			}

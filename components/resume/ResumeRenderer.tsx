@@ -30,6 +30,15 @@ export function ResumeRenderer({
 	if (layout === 'twoColumn') {
 		return <TwoColumn data={data} accent={accent} fontFamily={fontFamily} />;
 	}
+	if (layout === 'headerBand') {
+		return <HeaderBand data={data} accent={accent} fontFamily={fontFamily} />;
+	}
+	if (layout === 'sidebarLeft') {
+		return <SidebarLeft data={data} accent={accent} fontFamily={fontFamily} />;
+	}
+	if (layout === 'labelLeft') {
+		return <LabelLeft data={data} accent={accent} fontFamily={fontFamily} />;
+	}
 	return (
 		<SingleColumn data={data} accent={accent} fontFamily={fontFamily} academic={layout === 'academic'} />
 	);
@@ -323,6 +332,170 @@ function TwoColumn({ data, accent, fontFamily }: { data: ResumeData; accent: str
 				{orderedCoreBlocks(data, accent, ['summary', 'experience', 'projects'])}
 				<CustomBlocks data={data} accent={accent} />
 			</main>
+		</div>
+	);
+}
+
+function SidebarHeading({ children, accent }: { children: ReactNode; accent: string }) {
+	return (
+		<h2 className="text-[11px] font-bold uppercase tracking-wide mb-1.5" style={{ color: accent }}>
+			{children}
+			<span className="block mt-0.5 h-[2px] w-6" style={{ background: accent }} />
+		</h2>
+	);
+}
+
+/* Oslo-style: colored header band with centered photo + name, single column body */
+function HeaderBand({ data, accent, fontFamily }: { data: ResumeData; accent: string; fontFamily: string }) {
+	const p = data.personal;
+	const contact = [p.email, p.phone, p.location, ...p.links.map((l) => l.url)].filter(Boolean);
+	return (
+		<div className="bg-white text-[#111c2d] w-full h-full" style={{ fontFamily }}>
+			<div style={{ background: accent }} className="text-white px-8 py-7 text-center">
+				{p.photo && (
+					// eslint-disable-next-line @next/next/no-img-element
+					<img src={p.photo} alt="" className="w-20 h-20 rounded-full object-cover mx-auto mb-2 border-2 border-white/50" />
+				)}
+				<h1 className="text-[24px] font-extrabold leading-tight">{p.fullName || 'Your Name'}</h1>
+				<div className="text-[11px] tracking-[0.2em] uppercase opacity-90 mt-0.5">{p.title}</div>
+				{contact.length > 0 && (
+					<div className="mt-2 text-[10.5px] opacity-90">{contact.join('     •     ')}</div>
+				)}
+			</div>
+			<div className="p-8">
+				{orderedCoreBlocks(data, accent, ['summary', 'experience', 'education', 'skills', 'projects'])}
+				<CustomBlocks data={data} accent={accent} />
+			</div>
+		</div>
+	);
+}
+
+/* Berlin/Amsterdam-style: big name, then a plain left sidebar (info, skill bars,
+   education) + main content column */
+function SidebarLeft({ data, accent, fontFamily }: { data: ResumeData; accent: string; fontFamily: string }) {
+	const p = data.personal;
+	const contact = [p.email, p.phone, p.location, ...p.links.map((l) => l.url)].filter(Boolean);
+	return (
+		<div className="bg-white text-[#111c2d] w-full h-full p-8" style={{ fontFamily }}>
+			<header>
+				<h1 className="text-[26px] font-extrabold uppercase leading-none tracking-tight" style={{ color: accent }}>
+					{p.fullName || 'Your Name'}
+				</h1>
+				<div className="text-[13px] font-semibold opacity-80 mt-1">{p.title}</div>
+			</header>
+			<div className="h-px w-full my-4" style={{ background: `${accent}40` }} />
+			<div className="flex gap-7">
+				<aside className="w-[34%] shrink-0 space-y-4">
+					{contact.length > 0 && (
+						<div>
+							<SidebarHeading accent={accent}>Info</SidebarHeading>
+							<div className="space-y-1 text-[10.5px] break-words">
+								{contact.map((c, i) => (
+									<div key={i}>{c}</div>
+								))}
+							</div>
+						</div>
+					)}
+					{data.skills.length > 0 && (
+						<div>
+							<SidebarHeading accent={accent}>Skills</SidebarHeading>
+							<div className="space-y-1.5">
+								{data.skills.map((s, i) => (
+									<div key={i}>
+										<div className="text-[10.5px] mb-0.5">{s}</div>
+										<div className="h-1 rounded-full bg-black/10">
+											<div className="h-1 rounded-full" style={{ width: `${72 + (i % 3) * 9}%`, background: accent }} />
+										</div>
+									</div>
+								))}
+							</div>
+						</div>
+					)}
+					{data.education.length > 0 && (
+						<div>
+							<SidebarHeading accent={accent}>Education</SidebarHeading>
+							{data.education.map((e) => (
+								<div key={e.id} className="text-[10.5px] mb-1.5">
+									<div className="font-bold">{e.degree}</div>
+									<div className="opacity-80">{e.school}</div>
+									<div className="opacity-70 font-[family-name:var(--font-mono)]">{[e.start, e.end].filter(Boolean).join(' – ')}</div>
+								</div>
+							))}
+						</div>
+					)}
+				</aside>
+				<main className="flex-1">
+					{orderedCoreBlocks(data, accent, ['summary', 'experience', 'projects'])}
+					<CustomBlocks data={data} accent={accent} />
+				</main>
+			</div>
+		</div>
+	);
+}
+
+/* London/Milan-style: centered name, each section labelled down the left margin */
+function LabelLeft({ data, accent, fontFamily }: { data: ResumeData; accent: string; fontFamily: string }) {
+	const p = data.personal;
+	const contact = [p.email, p.phone, p.location, ...p.links.map((l) => l.url)].filter(Boolean);
+	const Row = ({ label, children }: { label: string; children: ReactNode }) => (
+		<div className="flex gap-5 py-2.5 border-t border-black/10">
+			<div className="w-24 shrink-0 label-caps pt-0.5" style={{ color: accent }}>
+				{label}
+			</div>
+			<div className="flex-1">{children}</div>
+		</div>
+	);
+	const customs = (data.sections ?? []).filter((s) => s.items.some((it) => it.primary || it.secondary));
+	return (
+		<div className="bg-white text-[#111c2d] w-full h-full p-8" style={{ fontFamily }}>
+			<header className="text-center mb-4">
+				<h1 className="text-[24px] font-extrabold" style={{ color: accent }}>
+					{p.fullName || 'Your Name'}
+					{p.title ? `, ${p.title}` : ''}
+				</h1>
+				{contact.length > 0 && (
+					<div className="text-[10.5px] opacity-80 mt-1">{contact.join('     •     ')}</div>
+				)}
+			</header>
+			{p.summary && (
+				<Row label="Profile">
+					<p className="text-[11.5px] leading-snug">{p.summary}</p>
+				</Row>
+			)}
+			{data.experience.length > 0 && (
+				<Row label="Experience">
+					<ExperienceBlock data={data} />
+				</Row>
+			)}
+			{data.education.length > 0 && (
+				<Row label="Education">
+					<EducationBlock data={data} />
+				</Row>
+			)}
+			{data.skills.length > 0 && (
+				<Row label="Skills">
+					<SkillsBlock data={data} accent={accent} />
+				</Row>
+			)}
+			{customs.map((sec) => (
+				<Row key={sec.id} label={sec.heading}>
+					<div className="space-y-0.5">
+						{sec.items
+							.filter((it) => it.primary || it.secondary)
+							.map((it) => (
+								<div key={it.id} className="text-[11px]">
+									<span className="font-semibold">{it.primary}</span>
+									{it.secondary && (
+										<span style={sec.type === 'links' ? { color: accent } : { opacity: 0.72 }}>
+											{' — '}
+											{it.secondary}
+										</span>
+									)}
+								</div>
+							))}
+					</div>
+				</Row>
+			))}
 		</div>
 	);
 }
