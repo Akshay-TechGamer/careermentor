@@ -56,13 +56,28 @@ export async function downloadResumePdf(
 			logging: false,
 		});
 		const imgData = canvas.toDataURL('image/jpeg', 0.95);
-		const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 		const imgH = (canvas.height * PAGE_W) / canvas.width;
+
+		if (imgH <= PAGE_H + 1) {
+			// Fits on one page: use a page sized exactly to the content (width
+			// stays 210mm) so a coloured sidebar fills it fully — no empty band.
+			const h = Math.max(imgH, 60);
+			const pdf = new jsPDF({
+				orientation: h >= PAGE_W ? 'portrait' : 'landscape',
+				unit: 'mm',
+				format: [PAGE_W, h],
+			});
+			pdf.addImage(imgData, 'JPEG', 0, 0, PAGE_W, h);
+			pdf.save(`${fileNameFor(data, filename)}.pdf`);
+			return;
+		}
+
+		// Longer than a page: paginate on A4.
+		const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 		let heightLeft = imgH;
 		let position = 0;
 		pdf.addImage(imgData, 'JPEG', 0, position, PAGE_W, imgH);
 		heightLeft -= PAGE_H;
-		// Only add a page for genuine overflow (avoids a spurious blank 2nd page).
 		while (heightLeft > 1) {
 			position -= PAGE_H;
 			pdf.addPage();

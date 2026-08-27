@@ -64,7 +64,7 @@ export default function PublicResumePage() {
 			</div>
 
 			<div className="py-8 px-4 flex justify-center bg-surface-dim/40">
-				<div ref={sheetRef} className="bg-white shadow-[var(--shadow-card)]" style={{ width: 794, minHeight: 1123 }}>
+				<div ref={sheetRef} className="bg-white shadow-[var(--shadow-card)]" style={{ width: 794 }}>
 					<ResumeRenderer data={row.data} templateSlug={row.template_slug} />
 				</div>
 			</div>

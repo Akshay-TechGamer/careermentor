@@ -78,7 +78,7 @@ export default function PreviewPage() {
 				<div
 					ref={sheetRef}
 					className="print-sheet bg-white shadow-[var(--shadow-card)]"
-					style={{ width: 794, minHeight: 1123 }}
+					style={{ width: 794 }}
 				>
 					<ResumeRenderer data={draft.data} templateSlug={draft.templateSlug} />
 				</div>
