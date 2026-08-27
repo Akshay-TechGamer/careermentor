@@ -5,6 +5,8 @@ import {
 	resolveSectionOrder,
 	SECTION_META,
 	spacingGap,
+	SPACING_GAP,
+	textScale,
 	type CoreSectionKey,
 	type ResumeData,
 } from '@/lib/types';
@@ -34,6 +36,7 @@ export function ResumeRenderer({
 	const vars = {
 		'--rz-gap': `${spacingGap(data.style)}px`,
 		'--rz-pad': `${marginPad(data.style)}px`,
+		'--rz-fs': `${textScale(data.style)}`,
 	} as CSSProperties;
 
 	const inner =
@@ -61,13 +64,13 @@ export function ResumeRenderer({
 function Contact({ data }: { data: ResumeData }) {
 	const p = data.personal;
 	const items = [p.email, p.phone, p.location, ...p.links.map((l) => l.url)].filter(Boolean);
-	return <p className="text-[11px] opacity-80">{items.join('  •  ')}</p>;
+	return <p className="text-[calc(11px_*_var(--rz-fs))] opacity-80">{items.join('  •  ')}</p>;
 }
 
 function SectionTitle({ children, accent }: { children: ReactNode; accent: string }) {
 	return (
 		<h2
-			className="text-[12px] font-bold uppercase tracking-wide mb-1.5 pb-1 border-b"
+			className="text-[calc(12px_*_var(--rz-fs))] font-bold uppercase tracking-wide mb-1.5 pb-1 border-b"
 			style={{ color: accent, borderColor: `${accent}55`, marginTop: 'var(--rz-gap, 16px)' }}
 		>
 			{children}
@@ -82,15 +85,15 @@ function ExperienceBlock({ data }: { data: ResumeData }) {
 			{data.experience.map((e) => (
 				<div key={e.id} className="mb-2.5">
 					<div className="flex justify-between items-baseline gap-2">
-						<span className="font-bold text-[12.5px]">{e.role || 'Role'}</span>
-						<span className="text-[10.5px] opacity-70 whitespace-nowrap font-[family-name:var(--font-mono)]">
+						<span className="font-bold text-[calc(12.5px_*_var(--rz-fs))]">{e.role || 'Role'}</span>
+						<span className="text-[calc(10.5px_*_var(--rz-fs))] opacity-70 whitespace-nowrap font-[family-name:var(--font-mono)]">
 							{dateRange(e.start, e.end, e.current)}
 						</span>
 					</div>
-					<div className="text-[11.5px] opacity-80">{e.company}</div>
+					<div className="text-[calc(11.5px_*_var(--rz-fs))] opacity-80">{e.company}</div>
 					<ul className="mt-1 list-disc pl-4 space-y-0.5">
 						{e.bullets.filter(Boolean).map((b, i) => (
-							<li key={i} className="text-[11px] leading-snug">
+							<li key={i} className="text-[calc(11px_*_var(--rz-fs))] leading-snug">
 								{b}
 							</li>
 						))}
@@ -108,13 +111,13 @@ function EducationBlock({ data }: { data: ResumeData }) {
 			{data.education.map((e) => (
 				<div key={e.id} className="mb-2">
 					<div className="flex justify-between items-baseline gap-2">
-						<span className="font-bold text-[12px]">{e.degree || 'Degree'}</span>
-						<span className="text-[10.5px] opacity-70 font-[family-name:var(--font-mono)]">
+						<span className="font-bold text-[calc(12px_*_var(--rz-fs))]">{e.degree || 'Degree'}</span>
+						<span className="text-[calc(10.5px_*_var(--rz-fs))] opacity-70 font-[family-name:var(--font-mono)]">
 							{dateRange(e.start, e.end, false)}
 						</span>
 					</div>
-					<div className="text-[11.5px] opacity-80">{e.school}</div>
-					{e.details && <div className="text-[11px] opacity-80">{e.details}</div>}
+					<div className="text-[calc(11.5px_*_var(--rz-fs))] opacity-80">{e.school}</div>
+					{e.details && <div className="text-[calc(11px_*_var(--rz-fs))] opacity-80">{e.details}</div>}
 				</div>
 			))}
 		</>
@@ -128,7 +131,7 @@ function SkillsBlock({ data, accent, light }: { data: ResumeData; accent: string
 			{data.skills.map((s, i) => (
 				<span
 					key={i}
-					className="text-[10.5px] rounded px-1.5 py-0.5"
+					className="text-[calc(10.5px_*_var(--rz-fs))] rounded px-1.5 py-0.5"
 					style={
 						light
 							? { background: 'rgba(255,255,255,0.18)' }
@@ -156,7 +159,7 @@ function CustomBlocks({ data, accent }: { data: ResumeData; accent: string }) {
 					<div key={sec.id}>
 						<SectionTitle accent={accent}>{sec.heading}</SectionTitle>
 						{layout === 'inline' ? (
-							<div className="text-[11px] leading-relaxed">
+							<div className="text-[calc(11px_*_var(--rz-fs))] leading-relaxed">
 								{items.map((it, i) => (
 									<span key={it.id}>
 										<span className="font-semibold">{it.primary}</span>
@@ -174,7 +177,7 @@ function CustomBlocks({ data, accent }: { data: ResumeData; accent: string }) {
 						) : layout === 'twocol' ? (
 							<div className="space-y-0.5">
 								{items.map((it) => (
-									<div key={it.id} className="text-[11.5px] flex justify-between gap-3">
+									<div key={it.id} className="text-[calc(11.5px_*_var(--rz-fs))] flex justify-between gap-3">
 										<span className="font-semibold">{it.primary}</span>
 										{it.secondary && (
 											<span className="whitespace-nowrap" style={secStyle}>
@@ -187,7 +190,7 @@ function CustomBlocks({ data, accent }: { data: ResumeData; accent: string }) {
 						) : layout === 'bulleted' ? (
 							<ul className="list-disc pl-4 space-y-0.5">
 								{items.map((it) => (
-									<li key={it.id} className="text-[11px]">
+									<li key={it.id} className="text-[calc(11px_*_var(--rz-fs))]">
 										<span className="font-semibold">{it.primary}</span>
 										{it.secondary && <span style={secStyle}> — {it.secondary}</span>}
 									</li>
@@ -197,9 +200,9 @@ function CustomBlocks({ data, accent }: { data: ResumeData; accent: string }) {
 							<div className="space-y-1">
 								{items.map((it) => (
 									<div key={it.id}>
-										<div className="text-[11.5px] font-semibold">{it.primary}</div>
+										<div className="text-[calc(11.5px_*_var(--rz-fs))] font-semibold">{it.primary}</div>
 										{it.secondary && (
-											<div className="text-[10.5px]" style={secStyle}>
+											<div className="text-[calc(10.5px_*_var(--rz-fs))]" style={secStyle}>
 												{it.secondary}
 											</div>
 										)}
@@ -232,10 +235,10 @@ function SingleColumn({
 			style={{ fontFamily, padding: 'var(--rz-pad, 32px)' }}
 		>
 			<header className={academic ? 'text-center' : ''}>
-				<h1 className="text-[24px] font-extrabold leading-tight" style={{ color: accent }}>
+				<h1 className="text-[calc(24px_*_var(--rz-fs))] font-extrabold leading-tight" style={{ color: accent }}>
 					{p.fullName || 'Your Name'}
 				</h1>
-				<div className="text-[13px] font-semibold opacity-90">{p.title}</div>
+				<div className="text-[calc(13px_*_var(--rz-fs))] font-semibold opacity-90">{p.title}</div>
 				<div className={academic ? 'flex justify-center mt-1' : 'mt-1'}>
 					<Contact data={data} />
 				</div>
@@ -255,7 +258,7 @@ function orderedCoreBlocks(data: ResumeData, accent: string, allowed: CoreSectio
 		summary: p.summary ? (
 			<>
 				<SectionTitle accent={accent}>Summary</SectionTitle>
-				<p className="text-[11.5px] leading-snug">{p.summary}</p>
+				<p className="text-[calc(11.5px_*_var(--rz-fs))] leading-snug">{p.summary}</p>
 			</>
 		) : null,
 		experience: data.experience.length > 0 ? (
@@ -281,16 +284,25 @@ function orderedCoreBlocks(data: ResumeData, accent: string, allowed: CoreSectio
 				<SectionTitle accent={accent}>Projects</SectionTitle>
 				{data.projects.map((pr) => (
 					<div key={pr.id} className="mb-1.5">
-						<span className="font-bold text-[12px]">{pr.name}</span>
-						<span className="text-[11px] opacity-80"> — {pr.description}</span>
+						<span className="font-bold text-[calc(12px_*_var(--rz-fs))]">{pr.name}</span>
+						<span className="text-[calc(11px_*_var(--rz-fs))] opacity-80"> — {pr.description}</span>
 					</div>
 				))}
 			</>
 		) : null,
 	};
+	const gaps = data.style?.sectionGaps ?? {};
 	return resolveSectionOrder(data)
 		.filter((k) => allowed.includes(k))
-		.map((k) => <div key={k}>{blocks[k]}</div>);
+		.map((k) => {
+			const g = gaps[k];
+			const style = g ? ({ '--rz-gap': `${SPACING_GAP[g]}px` } as CSSProperties) : undefined;
+			return (
+				<div key={k} style={style}>
+					{blocks[k]}
+				</div>
+			);
+		});
 }
 
 function TwoColumn({ data, accent, fontFamily }: { data: ResumeData; accent: string; fontFamily: string }) {
@@ -307,13 +319,13 @@ function TwoColumn({ data, accent, fontFamily }: { data: ResumeData; accent: str
 							className="w-20 h-20 rounded-full object-cover mx-auto mb-2 border-2 border-white/50"
 						/>
 					)}
-					<h1 className="text-[18px] font-extrabold leading-tight">{p.fullName || 'Your Name'}</h1>
-					<div className="text-[11px] opacity-90 font-semibold">{p.title}</div>
+					<h1 className="text-[calc(18px_*_var(--rz-fs))] font-extrabold leading-tight">{p.fullName || 'Your Name'}</h1>
+					<div className="text-[calc(11px_*_var(--rz-fs))] opacity-90 font-semibold">{p.title}</div>
 				</div>
 
 				<div className="mt-5">
-					<h2 className="text-[11px] font-bold uppercase tracking-wide opacity-90">Contact</h2>
-					<div className="mt-1 space-y-0.5 text-[10.5px] opacity-90 break-words">
+					<h2 className="text-[calc(11px_*_var(--rz-fs))] font-bold uppercase tracking-wide opacity-90">Contact</h2>
+					<div className="mt-1 space-y-0.5 text-[calc(10.5px_*_var(--rz-fs))] opacity-90 break-words">
 						{[p.email, p.phone, p.location, ...p.links.map((l) => l.url)]
 							.filter(Boolean)
 							.map((c, i) => (
@@ -324,7 +336,7 @@ function TwoColumn({ data, accent, fontFamily }: { data: ResumeData; accent: str
 
 				{data.skills.length > 0 && (
 					<div className="mt-4">
-						<h2 className="text-[11px] font-bold uppercase tracking-wide opacity-90">Skills</h2>
+						<h2 className="text-[calc(11px_*_var(--rz-fs))] font-bold uppercase tracking-wide opacity-90">Skills</h2>
 						<div className="mt-1.5">
 							<SkillsBlock data={data} accent={accent} light />
 						</div>
@@ -333,10 +345,10 @@ function TwoColumn({ data, accent, fontFamily }: { data: ResumeData; accent: str
 
 				{data.education.length > 0 && (
 					<div className="mt-4">
-						<h2 className="text-[11px] font-bold uppercase tracking-wide opacity-90">Education</h2>
+						<h2 className="text-[calc(11px_*_var(--rz-fs))] font-bold uppercase tracking-wide opacity-90">Education</h2>
 						<div className="mt-1 space-y-1.5">
 							{data.education.map((e) => (
-								<div key={e.id} className="text-[10.5px] opacity-90">
+								<div key={e.id} className="text-[calc(10.5px_*_var(--rz-fs))] opacity-90">
 									<div className="font-bold">{e.degree}</div>
 									<div>{e.school}</div>
 									<div className="opacity-80">{dateRange(e.start, e.end, false)}</div>
@@ -357,7 +369,7 @@ function TwoColumn({ data, accent, fontFamily }: { data: ResumeData; accent: str
 
 function SidebarHeading({ children, accent }: { children: ReactNode; accent: string }) {
 	return (
-		<h2 className="text-[11px] font-bold uppercase tracking-wide mb-1.5" style={{ color: accent }}>
+		<h2 className="text-[calc(11px_*_var(--rz-fs))] font-bold uppercase tracking-wide mb-1.5" style={{ color: accent }}>
 			{children}
 			<span className="block mt-0.5 h-[2px] w-6" style={{ background: accent }} />
 		</h2>
@@ -375,10 +387,10 @@ function HeaderBand({ data, accent, fontFamily }: { data: ResumeData; accent: st
 					// eslint-disable-next-line @next/next/no-img-element
 					<img src={p.photo} alt="" className="w-20 h-20 rounded-full object-cover mx-auto mb-2 border-2 border-white/50" />
 				)}
-				<h1 className="text-[24px] font-extrabold leading-tight">{p.fullName || 'Your Name'}</h1>
-				<div className="text-[11px] tracking-[0.2em] uppercase opacity-90 mt-0.5">{p.title}</div>
+				<h1 className="text-[calc(24px_*_var(--rz-fs))] font-extrabold leading-tight">{p.fullName || 'Your Name'}</h1>
+				<div className="text-[calc(11px_*_var(--rz-fs))] tracking-[0.2em] uppercase opacity-90 mt-0.5">{p.title}</div>
 				{contact.length > 0 && (
-					<div className="mt-2 text-[10.5px] opacity-90">{contact.join('     •     ')}</div>
+					<div className="mt-2 text-[calc(10.5px_*_var(--rz-fs))] opacity-90">{contact.join('     •     ')}</div>
 				)}
 			</div>
 			<div style={{ padding: 'var(--rz-pad, 32px)' }}>
@@ -397,10 +409,10 @@ function SidebarLeft({ data, accent, fontFamily }: { data: ResumeData; accent: s
 	return (
 		<div className="bg-white text-[#111c2d] w-full h-full" style={{ fontFamily, padding: 'var(--rz-pad, 32px)' }}>
 			<header>
-				<h1 className="text-[26px] font-extrabold uppercase leading-none tracking-tight" style={{ color: accent }}>
+				<h1 className="text-[calc(26px_*_var(--rz-fs))] font-extrabold uppercase leading-none tracking-tight" style={{ color: accent }}>
 					{p.fullName || 'Your Name'}
 				</h1>
-				<div className="text-[13px] font-semibold opacity-80 mt-1">{p.title}</div>
+				<div className="text-[calc(13px_*_var(--rz-fs))] font-semibold opacity-80 mt-1">{p.title}</div>
 			</header>
 			<div className="h-px w-full my-4" style={{ background: `${accent}40` }} />
 			<div className="flex gap-7">
@@ -408,7 +420,7 @@ function SidebarLeft({ data, accent, fontFamily }: { data: ResumeData; accent: s
 					{contact.length > 0 && (
 						<div>
 							<SidebarHeading accent={accent}>Info</SidebarHeading>
-							<div className="space-y-1 text-[10.5px] break-words">
+							<div className="space-y-1 text-[calc(10.5px_*_var(--rz-fs))] break-words">
 								{contact.map((c, i) => (
 									<div key={i}>{c}</div>
 								))}
@@ -421,7 +433,7 @@ function SidebarLeft({ data, accent, fontFamily }: { data: ResumeData; accent: s
 							<div className="space-y-1.5">
 								{data.skills.map((s, i) => (
 									<div key={i}>
-										<div className="text-[10.5px] mb-0.5">{s}</div>
+										<div className="text-[calc(10.5px_*_var(--rz-fs))] mb-0.5">{s}</div>
 										<div className="h-1 rounded-full bg-black/10">
 											<div className="h-1 rounded-full" style={{ width: `${72 + (i % 3) * 9}%`, background: accent }} />
 										</div>
@@ -434,7 +446,7 @@ function SidebarLeft({ data, accent, fontFamily }: { data: ResumeData; accent: s
 						<div>
 							<SidebarHeading accent={accent}>Education</SidebarHeading>
 							{data.education.map((e) => (
-								<div key={e.id} className="text-[10.5px] mb-1.5">
+								<div key={e.id} className="text-[calc(10.5px_*_var(--rz-fs))] mb-1.5">
 									<div className="font-bold">{e.degree}</div>
 									<div className="opacity-80">{e.school}</div>
 									<div className="opacity-70 font-[family-name:var(--font-mono)]">{[e.start, e.end].filter(Boolean).join(' – ')}</div>
@@ -460,10 +472,10 @@ function SidebarRight({ data, accent, fontFamily }: { data: ResumeData; accent: 
 		<div className="bg-white text-[#111c2d] w-full h-full" style={{ fontFamily, padding: 'var(--rz-pad, 32px)' }}>
 			<header className="flex items-start justify-between gap-4">
 				<div>
-					<h1 className="text-[26px] font-extrabold leading-none" style={{ color: accent }}>
+					<h1 className="text-[calc(26px_*_var(--rz-fs))] font-extrabold leading-none" style={{ color: accent }}>
 						{p.fullName || 'Your Name'}
 					</h1>
-					<div className="text-[14px] font-bold mt-1" style={{ color: accent }}>
+					<div className="text-[calc(14px_*_var(--rz-fs))] font-bold mt-1" style={{ color: accent }}>
 						{p.title}
 					</div>
 				</div>
@@ -481,7 +493,7 @@ function SidebarRight({ data, accent, fontFamily }: { data: ResumeData; accent: 
 					{contact.length > 0 && (
 						<div>
 							<SidebarHeading accent={accent}>Details</SidebarHeading>
-							<div className="space-y-0.5 text-[10.5px] break-words">
+							<div className="space-y-0.5 text-[calc(10.5px_*_var(--rz-fs))] break-words">
 								{contact.map((c, i) => (
 									<div key={i}>{c}</div>
 								))}
@@ -494,7 +506,7 @@ function SidebarRight({ data, accent, fontFamily }: { data: ResumeData; accent: 
 							<div className="space-y-1.5">
 								{data.skills.map((s, i) => (
 									<div key={i}>
-										<div className="text-[10.5px] mb-0.5">{s}</div>
+										<div className="text-[calc(10.5px_*_var(--rz-fs))] mb-0.5">{s}</div>
 										<div className="h-1 rounded-full bg-black/10">
 											<div className="h-1 rounded-full" style={{ width: `${72 + (i % 3) * 9}%`, background: accent }} />
 										</div>
@@ -526,17 +538,17 @@ function LabelLeft({ data, accent, fontFamily }: { data: ResumeData; accent: str
 	return (
 		<div className="bg-white text-[#111c2d] w-full h-full" style={{ fontFamily, padding: 'var(--rz-pad, 32px)' }}>
 			<header className="text-center mb-4">
-				<h1 className="text-[24px] font-extrabold" style={{ color: accent }}>
+				<h1 className="text-[calc(24px_*_var(--rz-fs))] font-extrabold" style={{ color: accent }}>
 					{p.fullName || 'Your Name'}
 					{p.title ? `, ${p.title}` : ''}
 				</h1>
 				{contact.length > 0 && (
-					<div className="text-[10.5px] opacity-80 mt-1">{contact.join('     •     ')}</div>
+					<div className="text-[calc(10.5px_*_var(--rz-fs))] opacity-80 mt-1">{contact.join('     •     ')}</div>
 				)}
 			</header>
 			{p.summary && (
 				<Row label="Profile">
-					<p className="text-[11.5px] leading-snug">{p.summary}</p>
+					<p className="text-[calc(11.5px_*_var(--rz-fs))] leading-snug">{p.summary}</p>
 				</Row>
 			)}
 			{data.experience.length > 0 && (
@@ -560,7 +572,7 @@ function LabelLeft({ data, accent, fontFamily }: { data: ResumeData; accent: str
 						{sec.items
 							.filter((it) => it.primary || it.secondary)
 							.map((it) => (
-								<div key={it.id} className="text-[11px]">
+								<div key={it.id} className="text-[calc(11px_*_var(--rz-fs))]">
 									<span className="font-semibold">{it.primary}</span>
 									{it.secondary && (
 										<span style={sec.type === 'links' ? { color: accent } : { opacity: 0.72 }}>

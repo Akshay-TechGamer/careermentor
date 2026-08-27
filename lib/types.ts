@@ -53,27 +53,37 @@ export interface CertificationItem {
 export type FontChoice = 'sans' | 'serif' | 'grotesk';
 export type SpacingChoice = 'compact' | 'cozy' | 'roomy';
 export type MarginChoice = 'narrow' | 'normal' | 'wide';
+export type TextSize = 'small' | 'medium' | 'large';
 
 export interface ResumeStyle {
 	accent?: string;
 	layout?: 'classic' | 'twoColumn' | 'academic';
 	font?: FontChoice;
-	/** Vertical spacing between sections. */
+	/** Vertical spacing between sections (global). */
 	spacing?: SpacingChoice;
 	/** Page margins (outer padding). */
 	margin?: MarginChoice;
+	/** Overall text size. */
+	textSize?: TextSize;
+	/** Per-section spacing overrides (keyed by core section key). */
+	sectionGaps?: Record<string, SpacingChoice>;
 }
 
 /** Section-gap (px) for each spacing preset. */
 export const SPACING_GAP: Record<SpacingChoice, number> = { compact: 8, cozy: 16, roomy: 26 };
 /** Page padding (px) for each margin preset. */
 export const MARGIN_PAD: Record<MarginChoice, number> = { narrow: 22, normal: 32, wide: 46 };
+/** Text scale multiplier for each size. */
+export const TEXT_SCALE: Record<TextSize, number> = { small: 0.92, medium: 1, large: 1.1 };
 
 export function spacingGap(style?: ResumeStyle): number {
 	return SPACING_GAP[style?.spacing ?? 'cozy'];
 }
 export function marginPad(style?: ResumeStyle): number {
 	return MARGIN_PAD[style?.margin ?? 'normal'];
+}
+export function textScale(style?: ResumeStyle): number {
+	return TEXT_SCALE[style?.textSize ?? 'medium'];
 }
 
 export type SectionType = 'certifications' | 'languages' | 'awards' | 'links' | 'custom';

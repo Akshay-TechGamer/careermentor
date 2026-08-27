@@ -20,6 +20,7 @@ import {
 	type ResumeData,
 	type SectionType,
 	type SpacingChoice,
+	type TextSize,
 } from '@/lib/types';
 import { improveBullets } from '@/lib/analyzer/analyze';
 
@@ -380,6 +381,11 @@ const MARGINS: { key: MarginChoice; label: string }[] = [
 	{ key: 'normal', label: 'Normal' },
 	{ key: 'wide', label: 'Wide' },
 ];
+const TEXT_SIZES: { key: TextSize; label: string }[] = [
+	{ key: 'small', label: 'Small' },
+	{ key: 'medium', label: 'Medium' },
+	{ key: 'large', label: 'Large' },
+];
 
 export function CustomizeSection({ data, update }: { data: ResumeData; update: Update }) {
 	const style = data.style ?? {};
@@ -479,7 +485,23 @@ export function CustomizeSection({ data, update }: { data: ResumeData; update: U
 				</div>
 			</div>
 
-			{(style.accent || style.layout || style.font || style.spacing || style.margin) && (
+			<div>
+				<span className="field-label">Text size</span>
+				<div className="flex flex-wrap gap-2">
+					{TEXT_SIZES.map((t) => (
+						<button
+							key={t.key}
+							type="button"
+							className={`chip ${(style.textSize ?? 'medium') === t.key ? 'chip-on' : ''}`}
+							onClick={() => setStyle({ textSize: t.key })}
+						>
+							{t.label}
+						</button>
+					))}
+				</div>
+			</div>
+
+			{(style.accent || style.layout || style.font || style.spacing || style.margin || style.textSize) && (
 				<button
 					type="button"
 					className="btn btn-ghost text-sm"
@@ -505,30 +527,61 @@ export function SectionOrderEditor({ data, update }: { data: ResumeData; update:
 		n.splice(to, 0, x);
 		setOrder(n);
 	};
+	const setGap = (key: CoreSectionKey, s: SpacingChoice) =>
+		update((d) => ({
+			...d,
+			style: { ...d.style, sectionGaps: { ...d.style?.sectionGaps, [key]: s } },
+		}));
+	const spaceOpts: { s: SpacingChoice; label: string }[] = [
+		{ s: 'compact', label: 'S' },
+		{ s: 'cozy', label: 'M' },
+		{ s: 'roomy', label: 'L' },
+	];
 
 	return (
 		<div>
 			<p className="text-sm text-on-surface-variant mb-2">
-				Drag (or use the arrows) to reorder how sections appear on your resume.
+				Drag (or use the arrows) to reorder sections. Use S / M / L to set the space above each one.
 			</p>
 			<ul className="space-y-1.5">
 				{order.map((key, i) => (
 					<li
 						key={key}
-						draggable
-						onDragStart={() => setDragIdx(i)}
-						onDragEnd={() => setDragIdx(null)}
 						onDragOver={(e) => e.preventDefault()}
 						onDrop={() => {
 							if (dragIdx !== null && dragIdx !== i) moveTo(dragIdx, i);
 							setDragIdx(null);
 						}}
-						className={`flex items-center gap-2 rounded-lg border border-outline-variant/70 bg-surface-lowest px-3 py-2 cursor-grab ${
+						className={`flex items-center gap-2 rounded-lg border border-outline-variant/70 bg-surface-lowest px-3 py-2 ${
 							dragIdx === i ? 'opacity-40' : ''
 						}`}
 					>
-						<GripVertical className="w-4 h-4 text-outline shrink-0" />
+						<span
+							draggable
+							onDragStart={() => setDragIdx(i)}
+							onDragEnd={() => setDragIdx(null)}
+							className="cursor-grab"
+						>
+							<GripVertical className="w-4 h-4 text-outline shrink-0" />
+						</span>
 						<span className="flex-1 font-medium">{CORE_SECTION_LABELS[key]}</span>
+						<div className="flex items-center gap-0.5 mr-1">
+							{spaceOpts.map((o) => (
+								<button
+									key={o.s}
+									type="button"
+									title={`${o.s} spacing above`}
+									onClick={() => setGap(key, o.s)}
+									className={`w-6 h-6 rounded text-[11px] font-bold ${
+										(data.style?.sectionGaps?.[key] ?? 'cozy') === o.s
+											? 'bg-primary text-on-primary'
+											: 'text-on-surface-variant hover:bg-surface-container'
+									}`}
+								>
+									{o.label}
+								</button>
+							))}
+						</div>
 						<button className="btn-ghost p-1 rounded" onClick={() => moveTo(i, i - 1)} aria-label="Move up">
 							<ArrowUp className="w-4 h-4" />
 						</button>
