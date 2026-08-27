@@ -280,8 +280,24 @@ function renderSingle(doc: Doc, data: ResumeData, accent: string, font: string, 
 			doc.setFontSize(9.5);
 			doc.setTextColor(25, 25, 25);
 			doc.text(pr.name || 'Project', M, state.y);
+			const dates = [pr.start, pr.end].filter(Boolean).join(' – ');
+			if (dates) {
+				doc.setFont(font, 'normal');
+				doc.setFontSize(9);
+				doc.setTextColor(110, 110, 110);
+				doc.text(dates, PAGE_W - M, state.y, { align: 'right' });
+			}
 			state.y += 4;
-			paragraph(pr.description, 9.5, [60, 60, 60]);
+			const meta = [pr.role, pr.tech, pr.link].filter(Boolean).join('  ·  ');
+			if (meta) {
+				paragraph(meta, 9, [90, 90, 90]);
+			}
+			if (pr.description) {
+				paragraph(pr.description, 9.5, [60, 60, 60]);
+			}
+			for (const b of (pr.bullets ?? []).filter(Boolean)) {
+				paragraph(`•  ${b}`, 9.5, [40, 40, 40]);
+			}
 			state.y += 1;
 		}
 	}

@@ -343,6 +343,13 @@ function SingleColumn({
 	);
 }
 
+/** Projects with actual content — an empty just-added card doesn't render. */
+function filledProjects(data: ResumeData) {
+	return data.projects.filter(
+		(pr) => pr.name || pr.description || (pr.bullets ?? []).some(Boolean),
+	);
+}
+
 /** Renders the requested core sections in the user's chosen order. */
 function orderedCoreBlocks(data: ResumeData, accent: string, allowed: CoreSectionKey[]) {
 	const p = data.personal;
@@ -371,15 +378,59 @@ function orderedCoreBlocks(data: ResumeData, accent: string, allowed: CoreSectio
 				<SkillGrid data={data} accent={accent} />
 			</>
 		) : null,
-		projects: data.projects.length > 0 ? (
+		projects: filledProjects(data).length > 0 ? (
 			<>
 				<SectionTitle accent={accent}>Projects</SectionTitle>
-				{data.projects.map((pr) => (
-					<div key={pr.id} className="mb-1.5">
-						<span className="font-bold text-[calc(12px_*_var(--rz-fs))]">{pr.name}</span>
-						<span className="text-[calc(11px_*_var(--rz-fs))] opacity-80"> — {pr.description}</span>
-					</div>
-				))}
+				{filledProjects(data).map((pr) => {
+					const dates = [pr.start, pr.end].filter(Boolean).join(' – ');
+					const bullets = (pr.bullets ?? []).filter(Boolean);
+					return (
+						<div key={pr.id} className="mb-2.5">
+							<div className="flex justify-between items-baseline gap-2">
+								<span className="text-[calc(12px_*_var(--rz-fs))]">
+									<span className="font-bold">{pr.name || 'Project'}</span>
+									{pr.link && (
+										<a
+											href={pr.link.startsWith('http') ? pr.link : `https://${pr.link}`}
+											className="font-normal text-[calc(10.5px_*_var(--rz-fs))] ml-2"
+											style={{ color: accent }}
+										>
+											{pr.link.replace(/^https?:\/\//, '')}
+										</a>
+									)}
+								</span>
+								{dates && (
+									<span className="text-[calc(10.5px_*_var(--rz-fs))] opacity-70 whitespace-nowrap font-[family-name:var(--font-mono)]">
+										{dates}
+									</span>
+								)}
+							</div>
+							{(pr.role || pr.tech) && (
+								<div className="text-[calc(11px_*_var(--rz-fs))]">
+									{pr.role && <span className="opacity-80">{pr.role}</span>}
+									{pr.role && pr.tech && <span className="opacity-40"> · </span>}
+									{pr.tech && (
+										<span className="font-medium" style={{ color: accent }}>
+											{pr.tech}
+										</span>
+									)}
+								</div>
+							)}
+							{pr.description && (
+								<p className="text-[calc(11px_*_var(--rz-fs))] opacity-90 leading-snug">{pr.description}</p>
+							)}
+							{bullets.length > 0 && (
+								<ul className="mt-0.5 list-disc pl-4 space-y-0.5">
+									{bullets.map((b, i) => (
+										<li key={i} className="text-[calc(11px_*_var(--rz-fs))] leading-snug">
+											{b}
+										</li>
+									))}
+								</ul>
+							)}
+						</div>
+					);
+				})}
 			</>
 		) : null,
 	};

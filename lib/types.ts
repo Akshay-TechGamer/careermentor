@@ -41,6 +41,14 @@ export interface ProjectItem {
 	name: string;
 	description: string;
 	link: string;
+	/** Your role on the project (e.g. "Team Lead", "Solo project"). */
+	role?: string;
+	/** Tech stack, comma-separated (e.g. "React, Node.js, Supabase"). */
+	tech?: string;
+	start?: string;
+	end?: string;
+	/** Highlight bullets (impact, results). */
+	bullets?: string[];
 }
 
 export interface CertificationItem {

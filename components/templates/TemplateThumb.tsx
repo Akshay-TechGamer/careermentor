@@ -33,6 +33,7 @@ function thumbData(template: Template): ResumeData {
 		name: 'Design Tokens Pipeline',
 		description: 'Automated theme delivery across web and mobile apps.',
 		link: '',
+		tech: 'Figma, React',
 	});
 	return data;
 }

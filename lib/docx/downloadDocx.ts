@@ -81,6 +81,33 @@ export async function downloadDocx(data: ResumeData, filename: string): Promise<
 		children.push(new Paragraph({ children: [new TextRun({ text: data.skills.join('  ·  '), size: 20 })] }));
 	}
 
+	if (data.projects.length) {
+		children.push(heading('Projects'));
+		for (const pr of data.projects) {
+			const dates = [pr.start, pr.end].filter(Boolean).join(' – ');
+			children.push(
+				new Paragraph({
+					children: [
+						new TextRun({ text: pr.name || 'Project', bold: true, size: 21 }),
+						...(pr.link ? [new TextRun({ text: `  ${pr.link}`, size: 18, color: '1f3b73' })] : []),
+						...(dates ? [new TextRun({ text: `\t${dates}`, size: 18, color: '666666' })] : []),
+					],
+					tabStops: [{ type: TabStopType.RIGHT, position: 9000 }],
+				}),
+			);
+			const meta = [pr.role, pr.tech].filter(Boolean).join(' · ');
+			if (meta) {
+				children.push(new Paragraph({ children: [new TextRun({ text: meta, italics: true, size: 19, color: '444444' })] }));
+			}
+			if (pr.description) {
+				children.push(new Paragraph({ children: [new TextRun({ text: pr.description, size: 20 })] }));
+			}
+			for (const b of (pr.bullets ?? []).filter(Boolean)) {
+				children.push(new Paragraph({ text: b, bullet: { level: 0 }, spacing: { after: 20 } }));
+			}
+		}
+	}
+
 	for (const sec of data.sections ?? []) {
 		const items = sec.items.filter((it) => it.primary || it.secondary);
 		if (!items.length) continue;

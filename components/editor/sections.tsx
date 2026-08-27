@@ -368,18 +368,58 @@ export function ProjectsSection({ data, update }: { data: ResumeData; update: Up
 		update((d) => ({ ...d, projects: d.projects.map((p, idx) => (idx === i ? { ...p, ...patch } : p)) }));
 	const remove = (i: number) =>
 		update((d) => ({ ...d, projects: d.projects.filter((_, idx) => idx !== i) }));
+	const reorder = (i: number, dir: -1 | 1) =>
+		update((d) => ({ ...d, projects: move(d.projects, i, i + dir) }));
+
 	return (
 		<div className="space-y-3">
 			{data.projects.map((p, i) => (
-				<EntryCard key={p.id} onRemove={() => remove(i)}>
-					<div className="grid gap-3">
+				<EntryCard
+					key={p.id}
+					onRemove={() => remove(i)}
+					onUp={() => reorder(i, -1)}
+					onDown={() => reorder(i, 1)}
+				>
+					<div className="grid gap-3 sm:grid-cols-2">
 						<Labeled label="Name">
-							<input className="input" value={p.name} onChange={(ev) => setItem(i, { name: ev.target.value })} />
+							<input className="input" value={p.name} placeholder="Project name" onChange={(ev) => setItem(i, { name: ev.target.value })} />
 						</Labeled>
-						<Labeled label="Description">
-							<input className="input" value={p.description} onChange={(ev) => setItem(i, { description: ev.target.value })} />
+						<Labeled label="Link (optional)">
+							<input className="input" value={p.link} placeholder="github.com/you/project" onChange={(ev) => setItem(i, { link: ev.target.value })} />
+						</Labeled>
+						<Labeled label="Your role (optional)">
+							<input className="input" value={p.role ?? ''} placeholder="Team Lead / Solo project" onChange={(ev) => setItem(i, { role: ev.target.value })} />
+						</Labeled>
+						<Labeled label="Tech stack (optional)">
+							<input className="input" value={p.tech ?? ''} placeholder="React, Node.js, Supabase" onChange={(ev) => setItem(i, { tech: ev.target.value })} />
+						</Labeled>
+						<Labeled label="Start (optional)">
+							<input className="input" value={p.start ?? ''} placeholder="2024" onChange={(ev) => setItem(i, { start: ev.target.value })} />
+						</Labeled>
+						<Labeled label="End (optional)">
+							<input className="input" value={p.end ?? ''} placeholder="2025 / Ongoing" onChange={(ev) => setItem(i, { end: ev.target.value })} />
 						</Labeled>
 					</div>
+					<Labeled label="Short description" className="mt-2">
+						<input className="input" value={p.description} placeholder="One line on what the project is." onChange={(ev) => setItem(i, { description: ev.target.value })} />
+					</Labeled>
+					<Labeled label="Highlights (one per line, optional)" className="mt-2">
+						<textarea
+							className="input min-h-20"
+							value={(p.bullets ?? []).join('\n')}
+							onChange={(ev) => setItem(i, { bullets: ev.target.value.split('\n') })}
+							placeholder="Reached 1,000 users in the first month."
+						/>
+					</Labeled>
+					{(p.bullets ?? []).some((b) => b.trim()) && (
+						<button
+							type="button"
+							className="btn btn-outline text-sm mt-2"
+							onClick={() => setItem(i, { bullets: improveBullets((p.bullets ?? []).filter(Boolean)) })}
+						>
+							<Sparkles className="w-4 h-4" /> Improve writing
+						</button>
+					)}
 				</EntryCard>
 			))}
 			<AddButton
