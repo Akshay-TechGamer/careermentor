@@ -31,7 +31,13 @@ export type TemplateLayout =
 	| 'monogramBand'
 	| 'kicker'
 	| 'boldBars'
-	| 'europass';
+	| 'europass'
+	| 'elegantSplit'
+	| 'pastelCard'
+	| 'twoTone'
+	| 'tintBands'
+	| 'slateCard'
+	| 'cornerBlock';
 
 const PHOTO_LAYOUTS: TemplateLayout[] = [
 	'twoColumn',
@@ -52,6 +58,10 @@ const PHOTO_LAYOUTS: TemplateLayout[] = [
 	'colorRight',
 	'blobs',
 	'kicker',
+	'pastelCard',
+	'tintBands',
+	'slateCard',
+	'cornerBlock',
 ];
 
 /** Whether a layout renders the headshot — drives the photo-upload UI too. */
@@ -152,6 +162,16 @@ const RAW: Raw[] = [
 	// ---- Soft band (tinted intro panel) ----
 	{ slug: 'vienna', name: 'Vienna', category: 'Creative', tags: ['Soft band', 'Statement', 'Serif'], blurb: 'A soft tinted intro panel with a big opening statement.', layout: 'softBand', accent: '#a16207', font: 'serif', headingFont: 'display' },
 	{ slug: 'athens', name: 'Athens', category: 'Professional', tags: ['Soft band', 'Minimal', 'Slate'], blurb: 'A calm tinted header panel with a minimal body.', layout: 'softBand', accent: '#334155', font: 'sans', headingFont: 'display' },
+
+	// ---- From user-shared reference designs ----
+	{ slug: 'warsaw', name: 'Warsaw', category: 'Professional', tags: ['Centered', 'Minimal', 'Rules'], blurb: 'A crisp centered header over ruled, left-aligned sections.', layout: 'academic', accent: '#16181d', font: 'sans', headingFont: 'display' },
+	{ slug: 'austin', name: 'Austin', category: 'Professional', tags: ['Amber band', 'Photo', 'Warm'], blurb: 'A warm amber header band with a photo and bar skills.', layout: 'headerBand', accent: '#d97706', font: 'sans', headingFont: 'display' },
+	{ slug: 'florence', name: 'Florence', category: 'Executive', tags: ['Elegant', 'Monogram', 'Split'], blurb: 'An elegant serif split with a monogram watermark.', layout: 'elegantSplit', accent: '#4b5563', font: 'serif', headingFont: 'display' },
+	{ slug: 'cambridge', name: 'Cambridge', category: 'Student', tags: ['Pastel', 'Photo', 'Friendly'], blurb: 'A friendly pastel header with tinted bar headings.', layout: 'pastelCard', accent: '#69a7cc', font: 'sans', headingFont: 'display' },
+	{ slug: 'seattle', name: 'Seattle', category: 'Professional', tags: ['Two-tone name', 'Dots', 'Clean'], blurb: 'A two-tone name with big dot-rated skills.', layout: 'twoTone', accent: '#2563eb', font: 'sans', headingFont: 'display' },
+	{ slug: 'osaka', name: 'Osaka', category: 'Professional', tags: ['Tinted bands', 'Centered photo', 'Red'], blurb: 'Tinted section bands under a centered photo header.', layout: 'tintBands', accent: '#d64545', font: 'sans', headingFont: 'display' },
+	{ slug: 'porto', name: 'Porto', category: 'Creative', tags: ['Slate card', 'Percent bars', 'Designer'], blurb: 'A slate designer page with a white card and percent bars.', layout: 'slateCard', accent: '#3f4650', font: 'sans', headingFont: 'display' },
+	{ slug: 'mumbai', name: 'Mumbai', category: 'Professional', tags: ['Corner block', 'Timeline', 'Mono'], blurb: 'A black corner block with a contact strip and timeline.', layout: 'cornerBlock', accent: '#16181d', font: 'sans', headingFont: 'display' },
 
 	// ---- Kicker (greeting intro + timeline) ----
 	{ slug: 'denver', name: 'Denver', category: 'Creative', tags: ['Greeting', 'Timeline', 'Grayscale'], blurb: 'A friendly Hey-there intro with a timeline of roles.', layout: 'kicker', accent: '#1f2937', font: 'sans', headingFont: 'display' },

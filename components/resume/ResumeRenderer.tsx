@@ -76,6 +76,18 @@ export function ResumeRenderer({
 			<Blobs data={data} accent={accent} fontFamily={fontFamily} />
 		) : layout === 'monogramBand' ? (
 			<MonogramBand data={data} accent={accent} fontFamily={fontFamily} />
+		) : layout === 'elegantSplit' ? (
+			<ElegantSplit data={data} accent={accent} fontFamily={fontFamily} />
+		) : layout === 'pastelCard' ? (
+			<PastelCard data={data} accent={accent} fontFamily={fontFamily} />
+		) : layout === 'twoTone' ? (
+			<TwoTone data={data} accent={accent} fontFamily={fontFamily} />
+		) : layout === 'tintBands' ? (
+			<TintBands data={data} accent={accent} fontFamily={fontFamily} />
+		) : layout === 'slateCard' ? (
+			<SlateCard data={data} accent={accent} fontFamily={fontFamily} />
+		) : layout === 'cornerBlock' ? (
+			<CornerBlock data={data} accent={accent} fontFamily={fontFamily} />
 		) : layout === 'europass' ? (
 			<Europass data={data} accent={accent} fontFamily={fontFamily} />
 		) : layout === 'boldBars' ? (
@@ -120,7 +132,7 @@ function Contact({ data }: { data: ResumeData }) {
 	return <p className="text-[calc(11px_*_var(--rz-fs))] opacity-80">{items.join('  •  ')}</p>;
 }
 
-type TitleVariant = 'underline' | 'double' | 'band' | 'dash' | 'box';
+type TitleVariant = 'underline' | 'double' | 'band' | 'dash' | 'box' | 'tint';
 
 function SectionTitle({
 	children,
@@ -131,6 +143,16 @@ function SectionTitle({
 	accent: string;
 	variant?: TitleVariant;
 }) {
+	if (variant === 'tint') {
+		return (
+			<h2
+				className="text-[calc(12px_*_var(--rz-fs))] font-bold uppercase tracking-wider mb-2 px-2 py-1 border-t"
+				style={{ color: accent, background: accent + '1a', borderColor: accent, marginTop: 'var(--rz-gap, 16px)' }}
+			>
+				{children}
+			</h2>
+		);
+	}
 	if (variant === 'dash') {
 		return (
 			<h2
@@ -2353,6 +2375,641 @@ function Europass({ data, accent, fontFamily }: { data: ResumeData; accent: stri
 						</div>
 					</Row>
 				))}
+		</div>
+	);
+}
+
+/* Olivia-style: elegant serif split with a monogram watermark and circled
+   letter section headings */
+function ElegantSplit({ data, accent, fontFamily }: { data: ResumeData; accent: string; fontFamily: string }) {
+	const p = data.personal;
+	const contact = [p.phone, p.email, p.location, ...p.links.map((l) => l.url)].filter(Boolean);
+	const initials = (p.fullName || 'Y N')
+		.split(/\s+/)
+		.filter(Boolean)
+		.slice(0, 2)
+		.map((w) => w[0]?.toUpperCase())
+		.join('');
+	const Head = ({ children }: { children: ReactNode }) => (
+		<h2
+			className="flex items-center gap-2 text-[calc(12.5px_*_var(--rz-fs))] font-bold uppercase tracking-[0.18em] mb-2"
+			style={{ marginTop: 'var(--rz-gap, 16px)' }}
+		>
+			<span
+				className="w-6 h-6 rounded-full border grid place-items-center text-[calc(10px_*_var(--rz-fs))] font-semibold shrink-0"
+				style={{ borderColor: accent, color: accent }}
+			>
+				{String(children).charAt(0)}
+			</span>
+			{children}
+		</h2>
+	);
+	return (
+		<div className="bg-white text-[#1f2430] w-full h-full relative overflow-hidden" style={{ fontFamily, padding: 'var(--rz-pad, 32px)' }}>
+			<div
+				className="absolute top-2 left-1/2 -translate-x-1/2 italic select-none pointer-events-none"
+				style={{ fontSize: 88, opacity: 0.07, color: accent }}
+				aria-hidden
+			>
+				{initials}
+			</div>
+			<header className="text-center relative">
+				<h1 className="text-[calc(26px_*_var(--rz-fs))] font-semibold tracking-[0.18em] uppercase leading-tight">
+					{p.fullName || 'Your Name'}
+				</h1>
+				<div className="text-[calc(10.5px_*_var(--rz-fs))] uppercase tracking-[0.3em] opacity-70 mt-1.5">{p.title}</div>
+			</header>
+			<div className="mt-4 border-t border-black/20" />
+			<div className="flex gap-7 mt-1">
+				<aside className="w-[34%] shrink-0 pr-6 border-r border-black/15">
+					{contact.length > 0 && (
+						<div>
+							<Head>Contact</Head>
+							<div className="space-y-1 text-[calc(10px_*_var(--rz-fs))] break-words">
+								{contact.map((c, i) => (
+									<div key={i}>{c}</div>
+								))}
+							</div>
+						</div>
+					)}
+					{data.education.length > 0 && (
+						<div>
+							<Head>Education</Head>
+							<EducationBlock data={data} />
+						</div>
+					)}
+					{data.skills.length > 0 && (
+						<div>
+							<Head>Skills</Head>
+							<ul className="list-disc pl-4 space-y-0.5">
+								{data.skills.map((s, i) => (
+									<li key={i} className="text-[calc(10.5px_*_var(--rz-fs))]">
+										{s}
+									</li>
+								))}
+							</ul>
+						</div>
+					)}
+					{(data.sections ?? [])
+						.filter((s) => s.items.some((it) => it.primary || it.secondary))
+						.map((sec) => (
+							<div key={sec.id}>
+								<Head>{sec.heading}</Head>
+								<div className="space-y-0.5 text-[calc(10.5px_*_var(--rz-fs))]">
+									{sec.items
+										.filter((it) => it.primary || it.secondary)
+										.map((it) => (
+											<div key={it.id}>
+												<span className="font-semibold">{it.primary}</span>
+												{it.secondary && <span className="opacity-70">: {it.secondary}</span>}
+											</div>
+										))}
+								</div>
+							</div>
+						))}
+				</aside>
+				<main className="flex-1 min-w-0">
+					{p.summary && (
+						<div>
+							<Head>Profile Summary</Head>
+							<p className="text-[calc(11px_*_var(--rz-fs))] leading-snug">{p.summary}</p>
+						</div>
+					)}
+					{data.experience.length > 0 && (
+						<div>
+							<Head>Work Experience</Head>
+							<ExperienceBlock data={data} />
+						</div>
+					)}
+					{filledProjects(data).length > 0 && (
+						<div>
+							<Head>Projects</Head>
+							<ProjectsBlock data={data} accent={accent} />
+						</div>
+					)}
+				</main>
+			</div>
+		</div>
+	);
+}
+
+/* Student-style: pastel tinted header card, tinted bar headings with square
+   markers, two-column body */
+function PastelCard({ data, accent, fontFamily }: { data: ResumeData; accent: string; fontFamily: string }) {
+	const p = data.personal;
+	const contact = [p.phone, p.email, p.location, ...p.links.map((l) => l.url)].filter(Boolean);
+	const BarHead = ({ children }: { children: ReactNode }) => (
+		<h2 className="flex items-center gap-2 mb-2" style={{ marginTop: 'var(--rz-gap, 16px)' }}>
+			<span className="w-2.5 h-2.5 bg-[#16181d] shrink-0" />
+			<span
+				className="flex-1 px-2.5 py-1 text-[calc(11.5px_*_var(--rz-fs))] font-bold uppercase tracking-[0.15em]"
+				style={{ background: `${accent}30` }}
+			>
+				{children}
+			</span>
+		</h2>
+	);
+	return (
+		<div className="bg-white text-[#16181d] w-full h-full flex flex-col" style={{ fontFamily }}>
+			<div className="flex items-center gap-6" style={{ background: `${accent}26`, padding: 'var(--rz-pad, 32px)' }}>
+				{p.photo && (
+					// eslint-disable-next-line @next/next/no-img-element
+					<img src={p.photo} alt="" className="w-28 h-28 rounded-full object-cover shrink-0 bg-white" />
+				)}
+				<div className="flex-1 min-w-0">
+					<h1 className="text-[calc(26px_*_var(--rz-fs))] font-extrabold uppercase tracking-tight leading-none">
+						{p.fullName || 'Your Name'}
+					</h1>
+					<div className="text-[calc(11px_*_var(--rz-fs))] font-bold uppercase tracking-[0.2em] mt-1.5">{p.title}</div>
+					{p.summary && (
+						<p className="text-[calc(10.5px_*_var(--rz-fs))] leading-snug mt-2 opacity-90">{p.summary}</p>
+					)}
+					{contact.length > 0 && (
+						<div className="text-[calc(9.5px_*_var(--rz-fs))] mt-2 pt-1.5 border-t border-black/20 opacity-85">
+							{contact.join('    ·    ')}
+						</div>
+					)}
+				</div>
+			</div>
+			<div className="flex-1 flex gap-8" style={{ padding: 'var(--rz-pad, 32px)', paddingTop: 8 }}>
+				<main className="flex-1 min-w-0">
+					{data.experience.length > 0 && (
+						<>
+							<BarHead>Experience</BarHead>
+							<ExperienceBlock data={data} />
+						</>
+					)}
+					{data.education.length > 0 && (
+						<>
+							<BarHead>Education</BarHead>
+							<EducationBlock data={data} />
+						</>
+					)}
+					{filledProjects(data).length > 0 && (
+						<>
+							<BarHead>Projects</BarHead>
+							<ProjectsBlock data={data} accent={accent} />
+						</>
+					)}
+				</main>
+				<aside className="w-[38%] shrink-0">
+					{data.skills.length > 0 && (
+						<>
+							<BarHead>Skills</BarHead>
+							<div className="space-y-1 text-[calc(10.5px_*_var(--rz-fs))]">
+								{data.skills.map((s, i) => (
+									<div key={i}>{s}</div>
+								))}
+							</div>
+						</>
+					)}
+					{(data.sections ?? [])
+						.filter((s) => s.items.some((it) => it.primary || it.secondary))
+						.map((sec) => (
+							<div key={sec.id}>
+								<BarHead>{sec.heading}</BarHead>
+								<div className="space-y-1 text-[calc(10.5px_*_var(--rz-fs))]">
+									{sec.items
+										.filter((it) => it.primary || it.secondary)
+										.map((it) => (
+											<div key={it.id}>
+												<span className="font-semibold">{it.primary}</span>
+												{it.secondary && <span className="opacity-70"> — {it.secondary}</span>}
+											</div>
+										))}
+								</div>
+							</div>
+						))}
+				</aside>
+			</div>
+		</div>
+	);
+}
+
+/* Molly-style: two-tone name (first word in accent), contact right, big dots */
+function TwoTone({ data, accent, fontFamily }: { data: ResumeData; accent: string; fontFamily: string }) {
+	const p = data.personal;
+	const words = (p.fullName || 'Your Name').split(/\s+/).filter(Boolean);
+	const first = words[0] ?? '';
+	const rest = words.slice(1).join(' ');
+	const contact = [p.email, ...p.links.map((l) => l.url), p.phone, p.location].filter(Boolean);
+	return (
+		<div className="bg-white text-[#16181d] w-full h-full" style={{ fontFamily, padding: 'var(--rz-pad, 32px)' }}>
+			<header className="flex items-start justify-between gap-6">
+				<div className="min-w-0">
+					<h1 className="text-[calc(28px_*_var(--rz-fs))] font-extrabold leading-[1.05] tracking-tight">
+						<span style={{ color: accent }}>{first}</span>
+						{rest && (
+							<>
+								<br />
+								{rest}
+							</>
+						)}
+					</h1>
+					<div className="text-[calc(10.5px_*_var(--rz-fs))] uppercase tracking-[0.25em] opacity-60 mt-1.5">{p.title}</div>
+				</div>
+				{contact.length > 0 && (
+					<div className="text-right text-[calc(10px_*_var(--rz-fs))] space-y-0.5 shrink-0 max-w-[42%]">
+						{contact.map((c, i) => (
+							<div key={i} className="truncate">
+								{c}
+							</div>
+						))}
+					</div>
+				)}
+			</header>
+			{p.summary && (
+				<>
+					<SectionTitle accent={accent}>Summary</SectionTitle>
+					<ul className="list-disc pl-4 space-y-0.5">
+						{p.summary
+							.split(/(?<=\.)\s+/)
+							.filter(Boolean)
+							.map((line, i) => (
+								<li key={i} className="text-[calc(11px_*_var(--rz-fs))] leading-snug">
+									{line}
+								</li>
+							))}
+					</ul>
+				</>
+			)}
+			{data.experience.length > 0 && (
+				<>
+					<SectionTitle accent={accent}>Professional Experience</SectionTitle>
+					<ExperienceBlock data={data} />
+				</>
+			)}
+			{data.education.length > 0 && (
+				<>
+					<SectionTitle accent={accent}>Education</SectionTitle>
+					<EducationBlock data={data} />
+				</>
+			)}
+			{filledProjects(data).length > 0 && (
+				<>
+					<SectionTitle accent={accent}>Projects</SectionTitle>
+					<ProjectsBlock data={data} accent={accent} />
+				</>
+			)}
+			<div className="flex gap-10">
+				{data.skills.length > 0 && (
+					<div className="flex-1">
+						<SectionTitle accent={accent}>Skills</SectionTitle>
+						<div className="grid grid-cols-2 gap-x-8 gap-y-2">
+							{data.skills.map((s, i) => (
+								<div key={i}>
+									<div className="text-[calc(10.5px_*_var(--rz-fs))] mb-1">{s}</div>
+									{showLevels(data) && <DotRow filled={skillLevelFor(data, s)} accent="#16181d" />}
+								</div>
+							))}
+						</div>
+					</div>
+				)}
+			</div>
+			<CustomBlocks data={data} accent={accent} />
+		</div>
+	);
+}
+
+/* Min Lee-style: centered photo header, accent rules, tinted band headings */
+function TintBands({ data, accent, fontFamily }: { data: ResumeData; accent: string; fontFamily: string }) {
+	const p = data.personal;
+	return (
+		<div className="bg-white text-[#2a2a2a] w-full h-full" style={{ fontFamily, padding: 'var(--rz-pad, 32px)' }}>
+			<div className="h-2 -mx-2 mb-4" style={{ background: `${accent}33` }} />
+			<header className="text-center">
+				{p.photo && (
+					// eslint-disable-next-line @next/next/no-img-element
+					<img src={p.photo} alt="" className="w-20 h-24 object-cover mx-auto mb-2.5" />
+				)}
+				<h1 className="text-[calc(26px_*_var(--rz-fs))] font-extrabold uppercase tracking-wide" style={{ color: accent }}>
+					{p.fullName || 'Your Name'}
+				</h1>
+				{p.title && <div className="text-[calc(11px_*_var(--rz-fs))] opacity-75 mt-0.5">{p.title}</div>}
+			</header>
+			<SectionTitle accent={accent} variant="tint">Contact</SectionTitle>
+			<div className="flex flex-wrap gap-x-8 gap-y-1 text-[calc(10.5px_*_var(--rz-fs))]">
+				{p.location && (
+					<span>
+						<b>Address:</b> {p.location}
+					</span>
+				)}
+				{p.phone && (
+					<span>
+						<b>Phone:</b> {p.phone}
+					</span>
+				)}
+				{p.email && (
+					<span>
+						<b>Email:</b> {p.email}
+					</span>
+				)}
+				{p.links.map((l, i) => (
+					<span key={i}>
+						<b>{l.label || 'Link'}:</b> {l.url}
+					</span>
+				))}
+			</div>
+			{p.summary && (
+				<>
+					<SectionTitle accent={accent} variant="tint">Resume Objective</SectionTitle>
+					<p className="text-[calc(11px_*_var(--rz-fs))] leading-snug">{p.summary}</p>
+				</>
+			)}
+			{data.education.length > 0 && (
+				<>
+					<SectionTitle accent={accent} variant="tint">Education</SectionTitle>
+					<EducationBlock data={data} />
+				</>
+			)}
+			{data.skills.length > 0 && (
+				<>
+					<SectionTitle accent={accent} variant="tint">Skills</SectionTitle>
+					<div className="grid grid-cols-3 gap-x-8 gap-y-2">
+						{data.skills.map((s, i) => (
+							<div key={i}>
+								<div className="text-[calc(10.5px_*_var(--rz-fs))] mb-1">{s}</div>
+								{showLevels(data) && <DotRow filled={skillLevelFor(data, s)} accent={accent} />}
+							</div>
+						))}
+					</div>
+				</>
+			)}
+			{data.experience.length > 0 && (
+				<>
+					<SectionTitle accent={accent} variant="tint">Work History</SectionTitle>
+					<ExperienceBlock data={data} />
+				</>
+			)}
+			{filledProjects(data).length > 0 && (
+				<>
+					<SectionTitle accent={accent} variant="tint">Projects</SectionTitle>
+					<ProjectsBlock data={data} accent={accent} />
+				</>
+			)}
+			<CustomBlocks data={data} accent={accent} variant="tint" />
+		</div>
+	);
+}
+
+/* Robert-style: slate designer page — dark header with circular photo, white
+   card body with percent bars */
+function SlateCard({ data, accent, fontFamily }: { data: ResumeData; accent: string; fontFamily: string }) {
+	const p = data.personal;
+	const contact = [p.phone, p.location, p.email, ...p.links.map((l) => l.url)].filter(Boolean);
+	const CardHead = ({ children }: { children: ReactNode }) => (
+		<h2
+			className="text-[calc(13px_*_var(--rz-fs))] font-extrabold uppercase tracking-[0.15em] mb-2 pb-1 border-b-2 border-black/70"
+			style={{ marginTop: 'var(--rz-gap, 16px)' }}
+		>
+			{children}
+		</h2>
+	);
+	return (
+		<div className="w-full h-full flex flex-col text-white" style={{ background: accent, fontFamily }}>
+			<header className="text-center px-8 pt-7 pb-5">
+				<h1 className="text-[calc(23px_*_var(--rz-fs))] font-extrabold uppercase tracking-[0.15em] leading-tight">
+					{p.fullName || 'Your Name'}
+				</h1>
+				<div className="text-[calc(10px_*_var(--rz-fs))] uppercase tracking-[0.3em] opacity-80 mt-1">{p.title}</div>
+				{p.photo && (
+					// eslint-disable-next-line @next/next/no-img-element
+					<img src={p.photo} alt="" className="w-24 h-24 rounded-full object-cover mx-auto mt-4 border-4 border-white/25" />
+				)}
+				{contact.length > 0 && (
+					<div className="flex flex-wrap justify-center gap-x-6 gap-y-1 mt-4 text-[calc(9.5px_*_var(--rz-fs))] opacity-90">
+						{contact.map((c, i) => (
+							<span key={i}>{c}</span>
+						))}
+					</div>
+				)}
+			</header>
+			<div className="flex-1 bg-[#f2f3f4] text-[#22272e] flex gap-7" style={{ padding: 'var(--rz-pad, 32px)' }}>
+				<aside className="w-[36%] shrink-0">
+					{p.summary && (
+						<>
+							<CardHead>About Me</CardHead>
+							<p className="text-[calc(10.5px_*_var(--rz-fs))] leading-snug">{p.summary}</p>
+						</>
+					)}
+					{data.skills.length > 0 && (
+						<>
+							<CardHead>Skills</CardHead>
+							<div className="space-y-2">
+								{data.skills.map((s, i) => {
+									const pct = skillLevelFor(data, s) * 20;
+									return (
+										<div key={i}>
+											<div className="flex justify-between text-[calc(10px_*_var(--rz-fs))] mb-0.5">
+												<span>{s}</span>
+												{showLevels(data) && <span className="opacity-60">{pct}%</span>}
+											</div>
+											<div className="h-[5px] bg-black/15">
+												<div className="h-[5px]" style={{ width: showLevels(data) ? `${pct}%` : '100%', background: accent }} />
+											</div>
+										</div>
+									);
+								})}
+							</div>
+						</>
+					)}
+					{(data.sections ?? [])
+						.filter((s) => s.items.some((it) => it.primary || it.secondary))
+						.map((sec) => (
+							<div key={sec.id}>
+								<CardHead>{sec.heading}</CardHead>
+								<div className="space-y-1 text-[calc(10px_*_var(--rz-fs))]">
+									{sec.items
+										.filter((it) => it.primary || it.secondary)
+										.map((it) => (
+											<div key={it.id}>
+												<span className="font-semibold">{it.primary}</span>
+												{it.secondary && <span className="opacity-70"> — {it.secondary}</span>}
+											</div>
+										))}
+								</div>
+							</div>
+						))}
+				</aside>
+				<main className="flex-1 min-w-0">
+					{data.education.length > 0 && (
+						<>
+							<CardHead>Education</CardHead>
+							<EducationBlock data={data} />
+						</>
+					)}
+					{data.experience.length > 0 && (
+						<>
+							<CardHead>Experience</CardHead>
+							{data.experience.map((e) => (
+								<div key={e.id} className="mb-2.5">
+									<div className="flex items-center justify-between gap-2">
+										<span className="font-bold text-[calc(11.5px_*_var(--rz-fs))]">
+											{[e.role || 'Role', e.company].filter(Boolean).join(' · ')}
+										</span>
+										<span
+											className="text-white text-[calc(8.5px_*_var(--rz-fs))] px-2 py-0.5 rounded-full whitespace-nowrap"
+											style={{ background: accent }}
+										>
+											{[e.start, e.current ? 'Present' : e.end].filter(Boolean).join(' – ')}
+										</span>
+									</div>
+									<ul className="mt-1 list-disc pl-4 space-y-0.5">
+										{e.bullets.filter(Boolean).map((b, i) => (
+											<li key={i} className="text-[calc(10.5px_*_var(--rz-fs))] leading-snug">
+												{b}
+											</li>
+										))}
+									</ul>
+								</div>
+							))}
+						</>
+					)}
+					{filledProjects(data).length > 0 && (
+						<>
+							<CardHead>Projects</CardHead>
+							<ProjectsBlock data={data} accent={accent} />
+						</>
+					)}
+				</main>
+			</div>
+		</div>
+	);
+}
+
+/* Blank-grey-style: black corner block with photo, dark contact strip,
+   year-gutter timeline sections */
+function CornerBlock({ data, accent, fontFamily }: { data: ResumeData; accent: string; fontFamily: string }) {
+	const p = data.personal;
+	const contactItems = [p.phone, p.location, p.email, ...p.links.map((l) => l.url)].filter(Boolean);
+	const Label = ({ children }: { children: ReactNode }) => (
+		<h2
+			className="text-[calc(13px_*_var(--rz-fs))] font-extrabold uppercase tracking-[0.1em] mb-2"
+			style={{ marginTop: 'var(--rz-gap, 16px)' }}
+		>
+			{children}
+		</h2>
+	);
+	const TimelineEntry = ({ dates, title, sub, bullets }: { dates: string; title: string; sub?: string; bullets?: string[] }) => (
+		<div className="flex gap-4 mb-1">
+			<div className="w-20 shrink-0 text-[calc(9.5px_*_var(--rz-fs))] opacity-70 pt-0.5 text-right">{dates}</div>
+			<div className="flex-1 min-w-0 border-l-2 pl-4 pb-3 relative" style={{ borderColor: `${accent}55` }}>
+				<span className="absolute -left-[5px] top-1.5 w-2 h-2 rounded-full" style={{ background: accent }} />
+				<div className="font-bold text-[calc(11.5px_*_var(--rz-fs))]">{title}</div>
+				{sub && <div className="text-[calc(10px_*_var(--rz-fs))] uppercase tracking-wide opacity-70">{sub}</div>}
+				{bullets && bullets.length > 0 && (
+					<ul className="mt-1 list-disc pl-4 space-y-0.5">
+						{bullets.map((b, i) => (
+							<li key={i} className="text-[calc(10.5px_*_var(--rz-fs))] leading-snug">
+								{b}
+							</li>
+						))}
+					</ul>
+				)}
+			</div>
+		</div>
+	);
+	return (
+		<div className="bg-white text-[#16181d] w-full h-full flex flex-col" style={{ fontFamily }}>
+			<header className="flex items-center">
+				<div className="w-44 h-36 shrink-0 grid place-items-center" style={{ background: accent }}>
+					{p.photo ? (
+						// eslint-disable-next-line @next/next/no-img-element
+						<img src={p.photo} alt="" className="w-24 h-24 rounded-full object-cover bg-white" />
+					) : (
+						<div className="w-24 h-24 rounded-full bg-white" />
+					)}
+				</div>
+				<div className="flex-1 pl-7 min-w-0">
+					<h1 className="text-[calc(30px_*_var(--rz-fs))] font-extrabold tracking-tight leading-none opacity-90">
+						{p.fullName || 'Your Name'}
+					</h1>
+					<div className="text-[calc(12px_*_var(--rz-fs))] opacity-60 mt-1">{p.title}</div>
+				</div>
+			</header>
+			{contactItems.length > 0 && (
+				<div
+					className="text-white flex flex-wrap gap-x-8 gap-y-1 px-7 py-2 text-[calc(9.5px_*_var(--rz-fs))]"
+					style={{ background: accent }}
+				>
+					{contactItems.map((c, i) => (
+						<span key={i}>{c}</span>
+					))}
+				</div>
+			)}
+			<div className="flex-1" style={{ padding: 'var(--rz-pad, 32px)', paddingTop: 12 }}>
+				{p.summary && (
+					<>
+						<Label>Objective</Label>
+						<p className="text-[calc(11px_*_var(--rz-fs))] leading-snug">{p.summary}</p>
+					</>
+				)}
+				{data.experience.length > 0 && (
+					<>
+						<Label>Experience</Label>
+						{data.experience.map((e) => (
+							<TimelineEntry
+								key={e.id}
+								dates={[e.start, e.current ? 'Present' : e.end].filter(Boolean).join(' – ')}
+								title={e.role || 'Role'}
+								sub={e.company}
+								bullets={e.bullets.filter(Boolean)}
+							/>
+						))}
+					</>
+				)}
+				{data.education.length > 0 && (
+					<>
+						<Label>Education</Label>
+						{data.education.map((e) => (
+							<TimelineEntry
+								key={e.id}
+								dates={[e.start, e.end].filter(Boolean).join(' – ')}
+								title={e.degree || 'Degree'}
+								sub={e.school}
+								bullets={e.details ? [e.details] : undefined}
+							/>
+						))}
+					</>
+				)}
+				{filledProjects(data).length > 0 && (
+					<>
+						<Label>Projects</Label>
+						<ProjectsBlock data={data} accent={accent} />
+					</>
+				)}
+				{data.skills.length > 0 && (
+					<>
+						<Label>Skills</Label>
+						<div className="flex flex-wrap gap-x-7 gap-y-1.5">
+							{data.skills.map((s, i) => (
+								<span key={i} className="text-[calc(10.5px_*_var(--rz-fs))] flex items-center gap-1.5">
+									<span className="w-1.5 h-1.5 shrink-0" style={{ background: accent }} />
+									{s}
+								</span>
+							))}
+						</div>
+					</>
+				)}
+				{(data.sections ?? [])
+					.filter((s) => s.items.some((it) => it.primary || it.secondary))
+					.map((sec) => (
+						<div key={sec.id}>
+							<Label>{sec.heading}</Label>
+							<div className="flex flex-wrap gap-x-7 gap-y-1.5">
+								{sec.items
+									.filter((it) => it.primary || it.secondary)
+									.map((it) => (
+										<span key={it.id} className="text-[calc(10.5px_*_var(--rz-fs))] flex items-center gap-1.5">
+											<span className="w-1.5 h-1.5 shrink-0" style={{ background: accent }} />
+											{it.primary}
+											{it.secondary && <span className="opacity-70"> ({it.secondary})</span>}
+										</span>
+									))}
+							</div>
+						</div>
+					))}
+			</div>
 		</div>
 	);
 }
