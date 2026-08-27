@@ -6,7 +6,7 @@ import Link from 'next/link';
 import type { User } from '@supabase/supabase-js';
 import { Eye, Download, BarChart3, Check, Loader2, X, Share2, Copy } from 'lucide-react';
 import type { ResumeData } from '@/lib/types';
-import { getTemplate } from '@/lib/templates/registry';
+import { getTemplate, layoutHasPhoto } from '@/lib/templates/registry';
 import { analyzeResume } from '@/lib/analyzer/analyze';
 import { ensureSession, getCurrentUser } from '@/lib/data/authRepo';
 import { createResume, getResume, updateResume } from '@/lib/data/resumesRepo';
@@ -268,7 +268,7 @@ export function BuildEditor() {
 						<PersonalSection
 							data={draft.data}
 							update={update}
-							showPhoto={(draft.data.style?.layout ?? template.layout) === 'twoColumn'}
+							showPhoto={layoutHasPhoto(draft.data.style?.layout ?? template.layout)}
 						/>
 					</CollapsibleCard>
 					<CollapsibleCard title="Experience">

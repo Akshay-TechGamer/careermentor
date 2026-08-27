@@ -14,6 +14,11 @@ export type TemplateLayout =
 
 const PHOTO_LAYOUTS: TemplateLayout[] = ['twoColumn', 'headerBand', 'sidebarRight'];
 
+/** Whether a layout renders the headshot — drives the photo-upload UI too. */
+export function layoutHasPhoto(layout: string | undefined): boolean {
+	return layout != null && PHOTO_LAYOUTS.includes(layout as TemplateLayout);
+}
+
 export type TemplateCategory =
 	| 'Professional'
 	| 'Executive'
