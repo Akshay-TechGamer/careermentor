@@ -124,6 +124,16 @@ export default function HomePage() {
 				</div>
 			</section>
 
+			{/* Free tools */}
+			<section className="mt-16 md:mt-20">
+				<h2 className="text-2xl md:text-3xl font-bold text-center">More free tools</h2>
+				<div className="mt-8 grid gap-4 md:grid-cols-3">
+					<ToolLink href="/analyze" title="Analyze or import a resume" body="Upload a PDF, DOCX or LinkedIn profile for an instant score and one-click import." />
+					<ToolLink href="/cover-letter" title="Cover letter generator" body="Draft a tailored cover letter from your resume in seconds." />
+					<ToolLink href="/build" title="Design your own template" body="Pick a layout, then customize colors, fonts and photo to make it yours." />
+				</div>
+			</section>
+
 			{/* CTA */}
 			<section className="my-16 md:my-24 card p-8 md:p-12 text-center">
 				<h2 className="text-2xl md:text-3xl font-bold">Ready to get hired faster?</h2>
@@ -145,6 +155,17 @@ function Feature({ Icon, title, body }: { Icon: typeof LayoutGrid; title: string
 			<h3 className="mt-4 text-lg font-bold">{title}</h3>
 			<p className="mt-1.5 text-on-surface-variant">{body}</p>
 		</div>
+	);
+}
+
+function ToolLink({ href, title, body }: { href: string; title: string; body: string }) {
+	return (
+		<Link href={href} className="card p-6 transition hover:shadow-[var(--shadow-float)] hover:-translate-y-0.5 flex flex-col">
+			<h3 className="text-lg font-bold flex items-center gap-2">
+				{title} <ArrowRight className="w-4 h-4 text-primary" />
+			</h3>
+			<p className="mt-1.5 text-on-surface-variant">{body}</p>
+		</Link>
 	);
 }
 

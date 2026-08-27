@@ -17,13 +17,13 @@ export default function PreviewPage() {
 	}, []);
 
 	const onDownload = async () => {
-		if (!sheetRef.current || !draft) return;
+		if (!draft) return;
 		setBusy(true);
 		try {
-			await downloadResumePdf(sheetRef.current, draft.title || 'resume');
-		} catch {
-			// Fall back to the print dialog if rasterization fails.
-			window.print();
+			await downloadResumePdf(draft.data, draft.templateSlug, draft.title || 'resume');
+		} catch (e) {
+			alert('Could not generate the PDF. Please try again.');
+			console.error(e);
 		} finally {
 			setBusy(false);
 		}

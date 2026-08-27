@@ -1,11 +1,13 @@
 'use client';
 
-import { Plus, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
-import type {
-	EducationItem,
-	ExperienceItem,
-	ProjectItem,
-	ResumeData,
+import { Plus, Trash2, ArrowUp, ArrowDown, RotateCcw, Check } from 'lucide-react';
+import {
+	ACCENT_PRESETS,
+	type EducationItem,
+	type ExperienceItem,
+	type FontChoice,
+	type ProjectItem,
+	type ResumeData,
 } from '@/lib/types';
 
 type Update = (fn: (d: ResumeData) => ResumeData) => void;
@@ -318,6 +320,97 @@ export function ProjectsSection({ data, update }: { data: ResumeData; update: Up
 					}))
 				}
 			/>
+		</div>
+	);
+}
+
+/* ---------------- Customize (design your template) ---------------- */
+const LAYOUTS: { key: 'classic' | 'twoColumn' | 'academic'; label: string }[] = [
+	{ key: 'classic', label: 'Single column' },
+	{ key: 'twoColumn', label: 'Two column' },
+	{ key: 'academic', label: 'Academic' },
+];
+const FONTS: { key: FontChoice; label: string }[] = [
+	{ key: 'sans', label: 'Modern' },
+	{ key: 'serif', label: 'Classic' },
+	{ key: 'grotesk', label: 'Technical' },
+];
+
+export function CustomizeSection({ data, update }: { data: ResumeData; update: Update }) {
+	const style = data.style ?? {};
+	const setStyle = (patch: Partial<ResumeData['style']>) =>
+		update((d) => ({ ...d, style: { ...d.style, ...patch } }));
+
+	return (
+		<div className="space-y-5">
+			<div>
+				<span className="field-label">Accent color</span>
+				<div className="flex flex-wrap items-center gap-2">
+					{ACCENT_PRESETS.map((c) => (
+						<button
+							key={c}
+							type="button"
+							onClick={() => setStyle({ accent: c })}
+							className="w-8 h-8 rounded-full border-2 flex items-center justify-center"
+							style={{ background: c, borderColor: style.accent === c ? '#111c2d' : 'transparent' }}
+							aria-label={`Accent ${c}`}
+						>
+							{style.accent === c && <Check className="w-4 h-4 text-white" />}
+						</button>
+					))}
+					<label className="w-8 h-8 rounded-full overflow-hidden border border-outline-variant cursor-pointer relative">
+						<input
+							type="color"
+							value={style.accent ?? '#0f52ba'}
+							onChange={(e) => setStyle({ accent: e.target.value })}
+							className="absolute inset-0 w-[150%] h-[150%] -translate-x-1/4 -translate-y-1/4 cursor-pointer"
+							aria-label="Custom accent color"
+						/>
+					</label>
+				</div>
+			</div>
+
+			<div>
+				<span className="field-label">Layout</span>
+				<div className="flex flex-wrap gap-2">
+					{LAYOUTS.map((l) => (
+						<button
+							key={l.key}
+							type="button"
+							className={`chip ${style.layout === l.key ? 'chip-on' : ''}`}
+							onClick={() => setStyle({ layout: l.key })}
+						>
+							{l.label}
+						</button>
+					))}
+				</div>
+			</div>
+
+			<div>
+				<span className="field-label">Font style</span>
+				<div className="flex flex-wrap gap-2">
+					{FONTS.map((f) => (
+						<button
+							key={f.key}
+							type="button"
+							className={`chip ${(style.font ?? 'sans') === f.key ? 'chip-on' : ''}`}
+							onClick={() => setStyle({ font: f.key })}
+						>
+							{f.label}
+						</button>
+					))}
+				</div>
+			</div>
+
+			{(style.accent || style.layout || style.font) && (
+				<button
+					type="button"
+					className="btn btn-ghost text-sm"
+					onClick={() => update((d) => ({ ...d, style: {} }))}
+				>
+					<RotateCcw className="w-4 h-4" /> Reset to template defaults
+				</button>
+			)}
 		</div>
 	);
 }

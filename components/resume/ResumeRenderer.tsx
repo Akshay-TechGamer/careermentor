@@ -1,5 +1,5 @@
-import type { ResumeData } from '@/lib/types';
-import { getTemplate, type Template } from '@/lib/templates/registry';
+import { FONT_FAMILY, type ResumeData } from '@/lib/types';
+import { getTemplate } from '@/lib/templates/registry';
 
 // Renders a resume document from data + template. Used for live preview and
 // (via a print stylesheet) PDF export. Sized to A4 proportions.
@@ -17,10 +17,15 @@ export function ResumeRenderer({
 	templateSlug: string;
 }) {
 	const template = getTemplate(templateSlug);
-	if (template.layout === 'twoColumn') {
-		return <TwoColumn data={data} template={template} />;
+	const accent = data.style?.accent ?? template.accent;
+	const layout = data.style?.layout ?? template.layout;
+	const fontFamily = FONT_FAMILY[data.style?.font ?? 'sans'];
+	if (layout === 'twoColumn') {
+		return <TwoColumn data={data} accent={accent} fontFamily={fontFamily} />;
 	}
-	return <SingleColumn data={data} template={template} academic={template.layout === 'academic'} />;
+	return (
+		<SingleColumn data={data} accent={accent} fontFamily={fontFamily} academic={layout === 'academic'} />
+	);
 }
 
 function Contact({ data }: { data: ResumeData }) {
@@ -109,17 +114,18 @@ function SkillsBlock({ data, accent, light }: { data: ResumeData; accent: string
 
 function SingleColumn({
 	data,
-	template,
+	accent,
+	fontFamily,
 	academic,
 }: {
 	data: ResumeData;
-	template: Template;
+	accent: string;
+	fontFamily: string;
 	academic: boolean;
 }) {
 	const p = data.personal;
-	const accent = template.accent;
 	return (
-		<div className="bg-white text-[#111c2d] w-full h-full p-8 font-[family-name:var(--font-body)]">
+		<div className="bg-white text-[#111c2d] w-full h-full p-8" style={{ fontFamily }}>
 			<header className={academic ? 'text-center' : ''}>
 				<h1 className="text-[24px] font-extrabold leading-tight" style={{ color: accent }}>
 					{p.fullName || 'Your Name'}
@@ -173,11 +179,10 @@ function SingleColumn({
 	);
 }
 
-function TwoColumn({ data, template }: { data: ResumeData; template: Template }) {
+function TwoColumn({ data, accent, fontFamily }: { data: ResumeData; accent: string; fontFamily: string }) {
 	const p = data.personal;
-	const accent = template.accent;
 	return (
-		<div className="bg-white text-[#111c2d] w-full h-full flex font-[family-name:var(--font-body)]">
+		<div className="bg-white text-[#111c2d] w-full h-full flex" style={{ fontFamily }}>
 			<aside className="w-1/3 p-5 text-white" style={{ background: accent }}>
 				{p.photo && (
 					// eslint-disable-next-line @next/next/no-img-element

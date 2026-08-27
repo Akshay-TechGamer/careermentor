@@ -18,6 +18,7 @@ import {
 	EducationSection,
 	SkillsSection,
 	ProjectsSection,
+	CustomizeSection,
 } from './sections';
 import { ResumePaper } from '@/components/resume/ResumePaper';
 
@@ -185,8 +186,15 @@ export function BuildEditor() {
 			<div className="mt-6 grid lg:grid-cols-[1fr_460px] gap-6 items-start">
 				{/* Editor */}
 				<div className="space-y-4">
+					<CollapsibleCard title="🎨 Design & Customize" defaultOpen={false}>
+						<CustomizeSection data={draft.data} update={update} />
+					</CollapsibleCard>
 					<CollapsibleCard title="Personal Info">
-						<PersonalSection data={draft.data} update={update} showPhoto={template.hasPhoto} />
+						<PersonalSection
+							data={draft.data}
+							update={update}
+							showPhoto={(draft.data.style?.layout ?? template.layout) === 'twoColumn'}
+						/>
 					</CollapsibleCard>
 					<CollapsibleCard title="Experience">
 						<ExperienceSection data={draft.data} update={update} />

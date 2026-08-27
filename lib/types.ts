@@ -50,6 +50,14 @@ export interface CertificationItem {
 	year: string;
 }
 
+export type FontChoice = 'sans' | 'serif' | 'grotesk';
+
+export interface ResumeStyle {
+	accent?: string;
+	layout?: 'classic' | 'twoColumn' | 'academic';
+	font?: FontChoice;
+}
+
 export interface ResumeData {
 	personal: PersonalInfo;
 	experience: ExperienceItem[];
@@ -57,7 +65,28 @@ export interface ResumeData {
 	skills: string[];
 	projects: ProjectItem[];
 	certifications: CertificationItem[];
+	/** Optional per-resume design overrides on top of the chosen template. */
+	style?: ResumeStyle;
 }
+
+export const FONT_FAMILY: Record<FontChoice, string> = {
+	sans: 'var(--font-body)',
+	serif: 'Georgia, "Times New Roman", serif',
+	grotesk: 'var(--font-mono)',
+};
+
+export const ACCENT_PRESETS: string[] = [
+	'#0f52ba',
+	'#003c90',
+	'#111c2d',
+	'#0f766e',
+	'#6d28d9',
+	'#db2777',
+	'#b91c1c',
+	'#c2410c',
+	'#1d4ed8',
+	'#334155',
+];
 
 export interface ResumeRow {
 	id: string;

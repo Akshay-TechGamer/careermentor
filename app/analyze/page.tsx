@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import {
 	CircleAlert,
@@ -12,11 +13,13 @@ import {
 	Loader2,
 	X,
 	Wand2,
+	FilePlus2,
 } from 'lucide-react';
 import type { ResumeData } from '@/lib/types';
 import { analyzeResume, analyzeText, type AnalysisResult, type BreakdownItem } from '@/lib/analyzer/analyze';
 import { loadDraft, saveDraft, type Draft } from '@/lib/data/draftStore';
 import { extractText, ACCEPTED } from '@/lib/upload/extractText';
+import { parseResumeText } from '@/lib/upload/parseResume';
 import { getTemplate, recommendTemplate } from '@/lib/templates/registry';
 import { ScoreGauge } from '@/components/analysis/ScoreGauge';
 import { TemplateThumb } from '@/components/templates/TemplateThumb';
@@ -76,12 +79,14 @@ function BreakdownCard({ item, onFixAll }: { item: BreakdownItem; onFixAll?: (i:
 }
 
 export default function AnalyzePage() {
+	const router = useRouter();
 	const [draft, setDraft] = useState<Draft | null>(null);
 	const [jd, setJd] = useState('');
 
 	// upload flow
 	const [uploading, setUploading] = useState(false);
 	const [uploadName, setUploadName] = useState('');
+	const [uploadText, setUploadText] = useState('');
 	const [uploadResult, setUploadResult] = useState<AnalysisResult | null>(null);
 	const [recommended, setRecommended] = useState<string | null>(null);
 	const [uploadError, setUploadError] = useState<string | null>(null);
@@ -100,6 +105,7 @@ export default function AnalyzePage() {
 			if (text.trim().length < 40) {
 				throw new Error('Could not read enough text from that file. Try a text-based PDF or DOCX.');
 			}
+			setUploadText(text);
 			setUploadResult(analyzeText(text));
 			setRecommended(recommendTemplate(text));
 			setUploadName(file.name);
@@ -108,6 +114,18 @@ export default function AnalyzePage() {
 		} finally {
 			setUploading(false);
 		}
+	};
+
+	const onImport = () => {
+		const parsed = parseResumeText(uploadText);
+		const next: Draft = {
+			id: null,
+			title: parsed.personal.fullName ? `${parsed.personal.fullName}'s Resume` : 'Imported Resume',
+			templateSlug: recommended ?? 'the-professional',
+			data: parsed,
+		};
+		saveDraft(next);
+		router.push('/build');
 	};
 
 	const applyFix = (before: string, after: string) => {
@@ -137,7 +155,8 @@ export default function AnalyzePage() {
 					<Upload className="w-5 h-5 text-primary" /> Already have a resume?
 				</label>
 				<p className="text-sm text-on-surface-variant mt-1">
-					Upload a PDF, DOCX or TXT for instant analysis and a template recommendation.
+					Upload a PDF, DOCX or TXT — or your LinkedIn profile (open it, “More → Save to PDF”)
+					— for instant analysis, a template recommendation, and one-click import.
 				</p>
 				<label className="btn btn-outline mt-3 cursor-pointer">
 					{uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
@@ -169,6 +188,10 @@ export default function AnalyzePage() {
 					<div className="card p-6 mt-3">
 						<ScoreHeader result={uploadResult} />
 					</div>
+
+					<button className="btn btn-primary w-full mt-4" onClick={onImport}>
+						<FilePlus2 className="w-4 h-4" /> Import into the editor to fix &amp; improve
+					</button>
 
 					{recommended && (
 						<div className="card p-5 mt-4 flex items-center gap-4">
