@@ -76,6 +76,8 @@ export function ResumeRenderer({
 			<Blobs data={data} accent={accent} fontFamily={fontFamily} />
 		) : layout === 'monogramBand' ? (
 			<MonogramBand data={data} accent={accent} fontFamily={fontFamily} />
+		) : layout === 'boldBars' ? (
+			<BoldBars data={data} accent={accent} fontFamily={fontFamily} />
 		) : layout === 'kicker' ? (
 			<Kicker data={data} accent={accent} fontFamily={fontFamily} />
 		) : layout === 'photoRight' ? (
@@ -2102,6 +2104,93 @@ function Kicker({ data, accent, fontFamily }: { data: ResumeData; accent: string
 					</>
 				)}
 			</main>
+		</div>
+	);
+}
+
+/* Berlin-style: stacked bold name, labelled info rail with thick black bars,
+   vertical divider, letterspaced main headings */
+function BoldBars({ data, accent, fontFamily }: { data: ResumeData; accent: string; fontFamily: string }) {
+	const p = data.personal;
+	const RailTitle = ({ children }: { children: ReactNode }) => (
+		<h2 className="text-[calc(12.5px_*_var(--rz-fs))] font-extrabold uppercase tracking-[0.15em] mb-2 pb-1 border-b border-black/60">
+			{children}
+		</h2>
+	);
+	const ThickBar = ({ width }: { width: string }) => (
+		<div className="h-[7px] bg-black/15">
+			<div className="h-[7px]" style={{ width, background: accent }} />
+		</div>
+	);
+	const InfoItem = ({ label, value }: { label: string; value: string }) => (
+		<div className="mb-2">
+			<div className="text-[calc(9px_*_var(--rz-fs))] font-bold uppercase tracking-[0.15em]">{label}</div>
+			<div className="text-[calc(10px_*_var(--rz-fs))] opacity-80 break-words">{value}</div>
+		</div>
+	);
+	return (
+		<div className="bg-white text-[#16181d] w-full h-full" style={{ fontFamily, padding: 'var(--rz-pad, 32px)' }}>
+			<header>
+				<h1 className="text-[calc(30px_*_var(--rz-fs))] font-extrabold uppercase leading-[1.05] tracking-tight max-w-[70%]">
+					{p.fullName || 'Your Name'}
+				</h1>
+				<div className="text-[calc(11px_*_var(--rz-fs))] opacity-60 mt-1.5">{p.title}</div>
+			</header>
+			<div className="flex mt-5">
+				<aside className="w-[32%] shrink-0 pr-6 border-r border-black/15 space-y-5">
+					{(p.location || p.phone || p.email || p.links.length > 0) && (
+						<div>
+							<RailTitle>Info</RailTitle>
+							{p.location && <InfoItem label="Address" value={p.location} />}
+							{p.phone && <InfoItem label="Phone" value={p.phone} />}
+							{p.email && <InfoItem label="Email" value={p.email} />}
+							{p.links.map((l, i) => (
+								<InfoItem key={i} label={l.label || 'Link'} value={l.url} />
+							))}
+						</div>
+					)}
+					{data.skills.length > 0 && (
+						<div>
+							<RailTitle>Skills</RailTitle>
+							<div className="space-y-2">
+								{data.skills.map((s, i) => (
+									<div key={i}>
+										<div className="text-[calc(10.5px_*_var(--rz-fs))] mb-1">{s}</div>
+										<ThickBar width={showLevels(data) ? `${skillLevelFor(data, s) * 20}%` : '100%'} />
+									</div>
+								))}
+							</div>
+						</div>
+					)}
+					{(data.sections ?? [])
+						.filter((s) => s.items.some((it) => it.primary || it.secondary))
+						.map((sec) => (
+							<div key={sec.id}>
+								<RailTitle>{sec.heading}</RailTitle>
+								<div className="space-y-2">
+									{sec.items
+										.filter((it) => it.primary || it.secondary)
+										.map((it) =>
+											sec.type === 'languages' ? (
+												<div key={it.id}>
+													<div className="text-[calc(10.5px_*_var(--rz-fs))] mb-1">{it.primary}</div>
+													<ThickBar width={`${(languageDots(it.secondary) ?? 5) * 20}%`} />
+												</div>
+											) : (
+												<div key={it.id} className="text-[calc(10px_*_var(--rz-fs))]">
+													<span className="font-semibold">{it.primary}</span>
+													{it.secondary && <span className="opacity-70"> — {it.secondary}</span>}
+												</div>
+											),
+										)}
+								</div>
+							</div>
+						))}
+				</aside>
+				<main className="flex-1 pl-6 min-w-0">
+					{orderedCoreBlocks(data, accent, ['summary', 'experience', 'education', 'projects'])}
+				</main>
+			</div>
 		</div>
 	);
 }

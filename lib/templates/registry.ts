@@ -29,7 +29,8 @@ export type TemplateLayout =
 	| 'colorRight'
 	| 'blobs'
 	| 'monogramBand'
-	| 'kicker';
+	| 'kicker'
+	| 'boldBars';
 
 const PHOTO_LAYOUTS: TemplateLayout[] = [
 	'twoColumn',
@@ -120,7 +121,7 @@ const RAW: Raw[] = [
 	{ slug: 'singapore', name: 'Singapore', category: 'Professional', tags: ['Numbered', 'Mono', 'Date chips'], blurb: 'Numbered mono section indexes with tinted date chips.', layout: 'numberedMono', accent: '#1e40af', font: 'sans', headingFont: 'display' },
 
 	// ---- Sidebar left (bold name + skill bars) ----
-	{ slug: 'berlin', name: 'Berlin', category: 'Professional', tags: ['Left sidebar', 'Skill bars', 'Charcoal'], blurb: 'A bold name over a left sidebar with rated skills.', layout: 'sidebarLeft', accent: '#111c2d', font: 'sans', headingFont: 'display' },
+	{ slug: 'berlin', name: 'Berlin', category: 'Professional', tags: ['Bold name', 'Black bars', 'Divider'], blurb: 'A stacked bold name with labelled info and thick black skill bars.', layout: 'boldBars', accent: '#16181d', font: 'sans', headingFont: 'display' },
 	{ slug: 'geneva', name: 'Geneva', category: 'Executive', tags: ['Left sidebar', 'Serif', 'Navy'], blurb: 'A refined navy sidebar layout for senior roles.', layout: 'sidebarLeft', accent: '#1e3a8a', font: 'serif', headingFont: 'display' },
 	{ slug: 'amsterdam', name: 'Amsterdam', category: 'Professional', tags: ['Framed name', 'Tinted rail', 'Navy'], blurb: 'A boxed name header over a tinted rail with dot-rated skills.', layout: 'tintRail', accent: '#1b2a4a', font: 'sans', headingFont: 'display' },
 	{ slug: 'zurich', name: 'Zurich', category: 'Executive', tags: ['Monogram band', 'Two column', 'Bronze'], blurb: 'A navy monogram band over two columns with bronze bars.', layout: 'monogramBand', accent: '#1a2438', font: 'serif', headingFont: 'display' },
