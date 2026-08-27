@@ -56,6 +56,12 @@ export function ResumeRenderer({
 			<SidebarRight data={data} accent={accent} fontFamily={fontFamily} />
 		) : layout === 'labelLeft' ? (
 			<LabelLeft data={data} accent={accent} fontFamily={fontFamily} />
+		) : layout === 'fullColor' ? (
+			<FullColor data={data} accent={accent} fontFamily={fontFamily} />
+		) : layout === 'railCards' ? (
+			<RailCards data={data} accent={accent} fontFamily={fontFamily} />
+		) : layout === 'softBand' ? (
+			<SoftBand data={data} accent={accent} fontFamily={fontFamily} />
 		) : (
 			<SingleColumn data={data} accent={accent} fontFamily={fontFamily} academic={layout === 'academic'} />
 		);
@@ -720,6 +726,218 @@ function LabelLeft({ data, accent, fontFamily }: { data: ResumeData; accent: str
 					</div>
 				</Row>
 			))}
+		</div>
+	);
+}
+
+/* Geneva-style: the entire page in the accent color with white type */
+function FullColor({ data, accent, fontFamily }: { data: ResumeData; accent: string; fontFamily: string }) {
+	const p = data.personal;
+	const contact = [p.email, p.phone, p.location, ...p.links.map((l) => l.url)].filter(Boolean);
+	return (
+		<div className="w-full h-full text-white" style={{ background: accent, fontFamily, padding: 'var(--rz-pad, 32px)' }}>
+			<header className="flex items-center gap-5">
+				{p.photo && (
+					// eslint-disable-next-line @next/next/no-img-element
+					<img src={p.photo} alt="" className="w-[72px] h-[72px] rounded-sm object-cover shrink-0 border border-white/30" />
+				)}
+				<div className="flex-1 min-w-0">
+					<h1 className="text-[calc(25px_*_var(--rz-fs))] font-extrabold leading-tight">{p.fullName || 'Your Name'}</h1>
+					<div className="text-[calc(12px_*_var(--rz-fs))] opacity-90 mt-0.5">{p.title}</div>
+				</div>
+				{contact.length > 0 && (
+					<div className="text-right text-[calc(10px_*_var(--rz-fs))] opacity-90 space-y-0.5 shrink-0 max-w-[38%]">
+						{contact.map((c, i) => (
+							<div key={i} className="truncate">
+								{c}
+							</div>
+						))}
+					</div>
+				)}
+			</header>
+			<div className="h-px w-full mt-4 bg-white/30" />
+			{orderedCoreBlocks(data, '#ffffff', ['summary', 'experience', 'education', 'skills', 'projects'])}
+			<CustomBlocks data={data} accent="#ffffff" />
+		</div>
+	);
+}
+
+/* Toronto-style: grey card sections, highlighted job titles, right card rail */
+function RailCards({ data, accent, fontFamily }: { data: ResumeData; accent: string; fontFamily: string }) {
+	const p = data.personal;
+	const contact = [p.email, p.phone, p.location, ...p.links.map((l) => l.url)].filter(Boolean);
+	const Card = ({ title, children }: { title: string; children: ReactNode }) => (
+		<div className="rounded-xl bg-black/[0.05] p-4" style={{ marginTop: 'var(--rz-gap, 16px)' }}>
+			<h2 className="text-[calc(14px_*_var(--rz-fs))] font-extrabold mb-1.5">{title}</h2>
+			{children}
+		</div>
+	);
+	return (
+		<div className="bg-white text-[#111c2d] w-full h-full" style={{ fontFamily, padding: 'var(--rz-pad, 32px)' }}>
+			<header className="flex items-center gap-4">
+				{p.photo && (
+					// eslint-disable-next-line @next/next/no-img-element
+					<img src={p.photo} alt="" className="w-16 h-16 object-cover shrink-0 rounded-sm" style={{ background: accent }} />
+				)}
+				<div className="min-w-0">
+					<h1 className="text-[calc(28px_*_var(--rz-fs))] font-extrabold leading-none tracking-tight">
+						{p.fullName || 'Your Name'}
+					</h1>
+					<div className="text-[calc(12px_*_var(--rz-fs))] font-semibold mt-1" style={{ color: accent }}>
+						{p.title}
+					</div>
+				</div>
+			</header>
+			<div className="flex gap-6 mt-2">
+				<main className="flex-1 min-w-0">
+					{p.summary && (
+						<Card title="Profile">
+							<p className="text-[calc(11px_*_var(--rz-fs))] leading-snug">{p.summary}</p>
+						</Card>
+					)}
+					{data.experience.length > 0 && (
+						<div style={{ marginTop: 'var(--rz-gap, 16px)' }}>
+							<h2 className="text-[calc(16px_*_var(--rz-fs))] font-extrabold mb-2">Employment History</h2>
+							{data.experience.map((e) => (
+								<div key={e.id} className="mb-3">
+									<span className="inline-block text-white font-bold text-[calc(11.5px_*_var(--rz-fs))] px-1.5 py-0.5 bg-[#16181d]">
+										{[e.role || 'Role', e.company].filter(Boolean).join(' at ')}
+									</span>
+									<div className="text-[calc(10.5px_*_var(--rz-fs))] opacity-70 mt-0.5 font-[family-name:var(--font-mono)]">
+										{[e.start, e.current ? 'Present' : e.end].filter(Boolean).join(' – ')}
+									</div>
+									<ul className="mt-1 list-disc pl-4 space-y-0.5">
+										{e.bullets.filter(Boolean).map((b, i) => (
+											<li key={i} className="text-[calc(11px_*_var(--rz-fs))] leading-snug">
+												{b}
+											</li>
+										))}
+									</ul>
+								</div>
+							))}
+						</div>
+					)}
+					{data.education.length > 0 && (
+						<div style={{ marginTop: 'var(--rz-gap, 16px)' }}>
+							<h2 className="text-[calc(16px_*_var(--rz-fs))] font-extrabold mb-2">Education</h2>
+							<EducationBlock data={data} />
+						</div>
+					)}
+					{filledProjects(data).length > 0 && (
+						<div style={{ marginTop: 'var(--rz-gap, 16px)' }}>
+							<h2 className="text-[calc(16px_*_var(--rz-fs))] font-extrabold mb-2">Projects</h2>
+							{filledProjects(data).map((pr) => (
+								<div key={pr.id} className="mb-2">
+									<span className="font-bold text-[calc(11.5px_*_var(--rz-fs))]">{pr.name}</span>
+									{pr.tech && (
+										<span className="text-[calc(10.5px_*_var(--rz-fs))] ml-2" style={{ color: accent }}>
+											{pr.tech}
+										</span>
+									)}
+									{pr.description && (
+										<p className="text-[calc(11px_*_var(--rz-fs))] opacity-90 leading-snug">{pr.description}</p>
+									)}
+								</div>
+							))}
+						</div>
+					)}
+				</main>
+				<aside className="w-[34%] shrink-0">
+					{contact.length > 0 && (
+						<Card title="Details">
+							<div className="space-y-0.5 text-[calc(10px_*_var(--rz-fs))] break-words">
+								{contact.map((c, i) => (
+									<div key={i}>{c}</div>
+								))}
+							</div>
+						</Card>
+					)}
+					{data.skills.length > 0 && (
+						<Card title="Skills">
+							<SkillBars data={data} accent={accent} />
+						</Card>
+					)}
+					{(data.sections ?? [])
+						.filter((s) => s.items.some((it) => it.primary || it.secondary))
+						.map((sec) => (
+							<Card key={sec.id} title={sec.heading}>
+								<div className="space-y-1">
+									{sec.items
+										.filter((it) => it.primary || it.secondary)
+										.map((it) => (
+											<div key={it.id} className="text-[calc(10.5px_*_var(--rz-fs))]">
+												<span className="font-semibold">{it.primary}</span>
+												{it.secondary && (
+													<span
+														className="ml-1"
+														style={sec.type === 'links' ? { color: accent } : { opacity: 0.72 }}
+													>
+														{it.secondary}
+													</span>
+												)}
+												{sec.type === 'languages' && it.secondary && <LangDots text={it.secondary} accent={accent} />}
+											</div>
+										))}
+								</div>
+							</Card>
+						))}
+				</aside>
+			</div>
+		</div>
+	);
+}
+
+/* Copenhagen-style: soft tinted intro panel with a big statement, plain body */
+function SoftBand({ data, accent, fontFamily }: { data: ResumeData; accent: string; fontFamily: string }) {
+	const p = data.personal;
+	return (
+		<div className="bg-white text-[#111c2d] w-full h-full flex flex-col" style={{ fontFamily }}>
+			<div style={{ background: `${accent}14`, padding: 'var(--rz-pad, 32px)' }}>
+				<div className="flex items-start justify-between gap-5">
+					<div className="flex items-center gap-4 min-w-0">
+						{p.photo && (
+							// eslint-disable-next-line @next/next/no-img-element
+							<img src={p.photo} alt="" className="w-16 h-16 rounded-sm object-cover shrink-0" />
+						)}
+						<div className="min-w-0">
+							<h1 className="text-[calc(17px_*_var(--rz-fs))] font-extrabold tracking-wide uppercase">
+								{p.fullName || 'Your Name'}
+							</h1>
+							<div className="text-[calc(11px_*_var(--rz-fs))] font-semibold opacity-80 mt-0.5">{p.title}</div>
+							{p.location && (
+								<div className="text-[calc(10px_*_var(--rz-fs))] opacity-70 mt-1 pt-1 border-t border-black/20">
+									{p.location}
+								</div>
+							)}
+						</div>
+					</div>
+					<div className="text-right text-[calc(10.5px_*_var(--rz-fs))] font-semibold space-y-0.5 shrink-0">
+						{[p.email, p.phone, ...p.links.map((l) => l.url)].filter(Boolean).map((c, i) => (
+							<div key={i}>{c}</div>
+						))}
+					</div>
+				</div>
+				{p.summary && (
+					<p className="mt-5 text-[calc(16px_*_var(--rz-fs))] leading-snug font-medium">{p.summary}</p>
+				)}
+				{data.skills.length > 0 && (
+					<div className="mt-5">
+						<div className="label-caps mb-2 opacity-70">Skills</div>
+						<div className="grid grid-cols-3 gap-x-6 gap-y-1.5">
+							{data.skills.map((s, i) => (
+								<div key={i} className="text-[calc(10.5px_*_var(--rz-fs))] flex items-baseline gap-2">
+									<span className="w-3 h-[2px] shrink-0 -translate-y-[3px]" style={{ background: accent }} />
+									{s}
+								</div>
+							))}
+						</div>
+					</div>
+				)}
+			</div>
+			<div className="flex-1" style={{ padding: 'var(--rz-pad, 32px)', paddingTop: 8 }}>
+				{orderedCoreBlocks(data, accent, ['experience', 'education', 'projects'])}
+				<CustomBlocks data={data} accent={accent} />
+			</div>
 		</div>
 	);
 }

@@ -10,9 +10,19 @@ export type TemplateLayout =
 	| 'headerBand'
 	| 'sidebarLeft'
 	| 'sidebarRight'
-	| 'labelLeft';
+	| 'labelLeft'
+	| 'fullColor'
+	| 'railCards'
+	| 'softBand';
 
-const PHOTO_LAYOUTS: TemplateLayout[] = ['twoColumn', 'headerBand', 'sidebarRight'];
+const PHOTO_LAYOUTS: TemplateLayout[] = [
+	'twoColumn',
+	'headerBand',
+	'sidebarRight',
+	'fullColor',
+	'railCards',
+	'softBand',
+];
 
 /** Whether a layout renders the headshot — drives the photo-upload UI too. */
 export function layoutHasPhoto(layout: string | undefined): boolean {
@@ -93,6 +103,18 @@ const RAW: Raw[] = [
 	{ slug: 'toronto', name: 'Toronto', category: 'Professional', tags: ['Right sidebar', 'Serif', 'Teal'], blurb: 'A clean serif layout with skills in a right rail.', layout: 'sidebarRight', accent: '#0f766e', font: 'serif', headingFont: 'display' },
 	{ slug: 'vancouver', name: 'Vancouver', category: 'Creative', tags: ['Right sidebar', 'Warm', 'Amber'], blurb: 'A warm amber layout with a supportive right column.', layout: 'sidebarRight', accent: '#b45309', font: 'sans', headingFont: 'display' },
 	{ slug: 'shanghai', name: 'Shanghai', category: 'Professional', tags: ['Right sidebar', 'Mono', 'Indigo'], blurb: 'A precise indigo layout with mono accents.', layout: 'sidebarRight', accent: '#4338ca', font: 'grotesk', headingFont: 'display' },
+
+	// ---- Full color (entire page in accent, white text) ----
+	{ slug: 'moscow', name: 'Moscow', category: 'Executive', tags: ['Full color', 'Bold', 'Serif'], blurb: 'A striking full-color page in deep blue with white type.', layout: 'fullColor', accent: '#1e40af', font: 'serif', headingFont: 'display' },
+	{ slug: 'cape-town', name: 'Cape Town', category: 'Creative', tags: ['Full color', 'Confident', 'Teal'], blurb: 'A confident full-color page in deep teal.', layout: 'fullColor', accent: '#134e4a', font: 'sans', headingFont: 'display' },
+
+	// ---- Rail cards (grey card sections + highlighted titles) ----
+	{ slug: 'boston', name: 'Boston', category: 'Professional', tags: ['Cards', 'Highlights', 'Teal'], blurb: 'Card-style sections with bold highlighted job titles.', layout: 'railCards', accent: '#0e7490', font: 'sans', headingFont: 'display' },
+	{ slug: 'sydney', name: 'Sydney', category: 'Creative', tags: ['Cards', 'Warm', 'Serif'], blurb: 'A warm serif layout with card sections and highlights.', layout: 'railCards', accent: '#7c2d12', font: 'serif', headingFont: 'display' },
+
+	// ---- Soft band (tinted intro panel) ----
+	{ slug: 'vienna', name: 'Vienna', category: 'Creative', tags: ['Soft band', 'Statement', 'Serif'], blurb: 'A soft tinted intro panel with a big opening statement.', layout: 'softBand', accent: '#a16207', font: 'serif', headingFont: 'display' },
+	{ slug: 'athens', name: 'Athens', category: 'Professional', tags: ['Soft band', 'Minimal', 'Slate'], blurb: 'A calm tinted header panel with a minimal body.', layout: 'softBand', accent: '#334155', font: 'sans', headingFont: 'display' },
 
 	// ---- Label left (editorial) ----
 	{ slug: 'london', name: 'London', category: 'Professional', tags: ['Label-left', 'Editorial', 'Serif'], blurb: 'An editorial layout with section labels down the left margin.', layout: 'labelLeft', accent: '#0f766e', font: 'serif', headingFont: 'display' },
