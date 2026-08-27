@@ -212,7 +212,7 @@ function ExperienceBlock({ data }: { data: ResumeData }) {
 	return (
 		<>
 			{data.experience.map((e) => (
-				<div key={e.id} className="mb-2.5">
+				<div key={e.id} className="mb-2.5" data-rz-atom>
 					<div className="flex justify-between items-baseline gap-2">
 						<span className="font-bold text-[calc(12.5px_*_var(--rz-fs))]">{e.role || 'Role'}</span>
 						<span className="text-[calc(10.5px_*_var(--rz-fs))] opacity-70 whitespace-nowrap font-[family-name:var(--font-mono)]">
@@ -238,7 +238,7 @@ function EducationBlock({ data }: { data: ResumeData }) {
 	return (
 		<>
 			{data.education.map((e) => (
-				<div key={e.id} className="mb-2">
+				<div key={e.id} className="mb-2" data-rz-atom>
 					<div className="flex justify-between items-baseline gap-2">
 						<span className="font-bold text-[calc(12px_*_var(--rz-fs))]">{e.degree || 'Degree'}</span>
 						<span className="text-[calc(10.5px_*_var(--rz-fs))] opacity-70 font-[family-name:var(--font-mono)]">
@@ -477,7 +477,7 @@ function ProjectsBlock({ data, accent }: { data: ResumeData; accent: string }) {
 				const dates = [pr.start, pr.end].filter(Boolean).join(' – ');
 				const bullets = (pr.bullets ?? []).filter(Boolean);
 				return (
-					<div key={pr.id} className="mb-2.5">
+					<div key={pr.id} className="mb-2.5" data-rz-atom>
 						<div className="flex justify-between items-baseline gap-2">
 							<span className="text-[calc(12px_*_var(--rz-fs))]">
 								<span className="font-bold">{pr.name || 'Project'}</span>

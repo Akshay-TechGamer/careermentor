@@ -7,6 +7,7 @@
 
 import type { ResumeData } from '@/lib/types';
 import { getTemplate } from '@/lib/templates/registry';
+import { PAGE_PX, paginateForPrint } from './paginate';
 
 type Doc = import('jspdf').jsPDF;
 
@@ -41,6 +42,7 @@ export async function downloadResumePdf(
 	templateSlug: string,
 	filename: string,
 ): Promise<void> {
+	let plan: { pages: number; restore: () => void } | null = null;
 	try {
 		const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
 			import('html2canvas-pro'),
@@ -49,43 +51,61 @@ export async function downloadResumePdf(
 		if (document.fonts && document.fonts.ready) {
 			await document.fonts.ready;
 		}
+
+		// Move anything that would straddle a page boundary onto the next page,
+		// then round the sheet up to whole pages.
+		plan = paginateForPrint(element);
+		await new Promise((r) => requestAnimationFrame(() => r(null)));
+
+		const sheetW = element.offsetWidth;
+		const sheetH = element.offsetHeight;
+		// Pin the clone's layout to the sheet's own size. Without this the
+		// capture follows the real window, so a phone renders a different (and
+		// wrongly paginated) document from a desktop.
 		const canvas = await html2canvas(element, {
 			scale: 2,
 			backgroundColor: '#ffffff',
 			useCORS: true,
 			logging: false,
+			width: sheetW,
+			height: sheetH,
+			windowWidth: sheetW,
+			windowHeight: sheetH,
+			scrollX: 0,
+			scrollY: 0,
 		});
-		const imgData = canvas.toDataURL('image/jpeg', 0.95);
-		const imgH = (canvas.height * PAGE_W) / canvas.width;
 
-		// Always standard A4 portrait pages.
+		const pages = plan.pages;
+		// Slice the real capture evenly, so a page that ended up a pixel or two
+		// over its nominal height simply scales instead of spilling over.
+		const sliceH = canvas.height / pages;
 		const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-		// Rounding tolerance: a few mm of overflow scales down to one page
-		// instead of spilling a sliver onto a nearly-empty second page.
-		const TOLERANCE = 6;
-		if (imgH <= PAGE_H + TOLERANCE) {
-			const h = Math.min(imgH, PAGE_H);
-			const w = (canvas.width * h) / canvas.height;
-			pdf.addImage(imgData, 'JPEG', (PAGE_W - w) / 2, 0, w, h);
-			pdf.save(`${fileNameFor(data, filename)}.pdf`);
-			return;
-		}
-
-		// Longer than a page: paginate on A4, dropping a trailing sliver.
-		let heightLeft = imgH;
-		let position = 0;
-		pdf.addImage(imgData, 'JPEG', 0, position, PAGE_W, imgH);
-		heightLeft -= PAGE_H;
-		while (heightLeft > TOLERANCE) {
-			position -= PAGE_H;
-			pdf.addPage();
-			pdf.addImage(imgData, 'JPEG', 0, position, PAGE_W, imgH);
-			heightLeft -= PAGE_H;
+		// Cut the capture into exactly `pages` slices — the page count comes from
+		// real content, so there is no stray blank page at the end.
+		const slice = document.createElement('canvas');
+		slice.width = canvas.width;
+		slice.height = Math.ceil(sliceH);
+		const ctx = slice.getContext('2d');
+		for (let i = 0; i < pages; i++) {
+			if (i > 0) {
+				pdf.addPage();
+			}
+			if (!ctx) {
+				break;
+			}
+			ctx.fillStyle = '#ffffff';
+			ctx.fillRect(0, 0, slice.width, slice.height);
+			ctx.drawImage(canvas, 0, -i * sliceH);
+			pdf.addImage(slice.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, PAGE_W, PAGE_H);
 		}
 		pdf.save(`${fileNameFor(data, filename)}.pdf`);
 	} catch {
 		await downloadVectorPdf(data, templateSlug, filename);
+	} finally {
+		if (plan) {
+			plan.restore();
+		}
 	}
 }
 
