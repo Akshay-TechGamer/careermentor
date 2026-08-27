@@ -41,7 +41,8 @@ export default function CoverLetterPage() {
 	const download = async () => {
 		setBusy(true);
 		try {
-			await downloadTextPdf(letter, `${draft?.title || 'cover'}-letter`);
+			const who = draft?.data.personal.fullName?.trim();
+			await downloadTextPdf(letter, who ? `${who} - Cover Letter` : 'CareerMentor Cover Letter');
 		} finally {
 			setBusy(false);
 		}

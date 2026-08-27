@@ -289,6 +289,24 @@ function chip(status: IssueStatus, ok: string, warn: string, bad: string): strin
 	return status === 'perfect' ? ok : status === 'warning' ? warn : bad;
 }
 
+/** Rewrites bullet points: swaps weak openers for strong verbs, fixes casing
+ * and punctuation. Zero-cost, deterministic — the "AI improve" action. */
+export function improveBullets(bullets: string[]): string[] {
+	return bullets.map((raw) => {
+		let out = raw.replace(/\s+/g, ' ').trim();
+		if (!out) return out;
+		for (const w of WEAK_OPENERS) {
+			if (w.re.test(out)) {
+				out = out.replace(w.re, `${w.verb} `).replace(/\s+/g, ' ').trim();
+				break;
+			}
+		}
+		out = out.charAt(0).toUpperCase() + out.slice(1);
+		if (!/[.!?]$/.test(out)) out += '.';
+		return out;
+	});
+}
+
 /** Analyzes raw resume text (from an uploaded file) with the same heuristics. */
 export function analyzeText(raw: string): AnalysisResult {
 	const text = raw.replace(/\r/g, '');

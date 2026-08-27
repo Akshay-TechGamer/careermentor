@@ -1,14 +1,20 @@
 'use client';
 
-import { Plus, Trash2, ArrowUp, ArrowDown, RotateCcw, Check } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, Trash2, ArrowUp, ArrowDown, RotateCcw, Check, Sparkles } from 'lucide-react';
 import {
 	ACCENT_PRESETS,
+	SECTION_META,
+	SECTION_ORDER,
+	type CustomSection,
 	type EducationItem,
 	type ExperienceItem,
 	type FontChoice,
 	type ProjectItem,
 	type ResumeData,
+	type SectionType,
 } from '@/lib/types';
+import { improveBullets } from '@/lib/analyzer/analyze';
 
 type Update = (fn: (d: ResumeData) => ResumeData) => void;
 
@@ -195,6 +201,15 @@ export function ExperienceSection({ data, update }: { data: ResumeData; update: 
 							placeholder="Led the redesign of… improving retention by 25%."
 						/>
 					</Labeled>
+					{e.bullets.some((b) => b.trim()) && (
+						<button
+							type="button"
+							className="btn btn-outline text-sm mt-2"
+							onClick={() => setItem(i, { bullets: improveBullets(e.bullets.filter(Boolean)) })}
+						>
+							<Sparkles className="w-4 h-4" /> Improve writing
+						</button>
+					)}
 				</EntryCard>
 			))}
 			<AddButton
@@ -411,6 +426,98 @@ export function CustomizeSection({ data, update }: { data: ResumeData; update: U
 					<RotateCcw className="w-4 h-4" /> Reset to template defaults
 				</button>
 			)}
+		</div>
+	);
+}
+
+/* ---------------- Custom / extra sections ---------------- */
+export function CustomSectionsEditor({ data, update }: { data: ResumeData; update: Update }) {
+	const sections = data.sections ?? [];
+	const [addType, setAddType] = useState<SectionType>('links');
+
+	const setSections = (fn: (s: CustomSection[]) => CustomSection[]) =>
+		update((d) => ({ ...d, sections: fn(d.sections ?? []) }));
+
+	const setItem = (si: number, ii: number, patch: Partial<{ primary: string; secondary: string }>) =>
+		setSections((s) =>
+			s.map((sec, idx) =>
+				idx === si ? { ...sec, items: sec.items.map((it, j) => (j === ii ? { ...it, ...patch } : it)) } : sec,
+			),
+		);
+	const addItem = (si: number) =>
+		setSections((s) =>
+			s.map((sec, idx) =>
+				idx === si ? { ...sec, items: [...sec.items, { id: id(), primary: '', secondary: '' }] } : sec,
+			),
+		);
+	const removeItem = (si: number, ii: number) =>
+		setSections((s) =>
+			s.map((sec, idx) => (idx === si ? { ...sec, items: sec.items.filter((_, j) => j !== ii) } : sec)),
+		);
+
+	const addSection = () => {
+		const meta = SECTION_META[addType];
+		setSections((s) => [
+			...s,
+			{ id: id(), type: addType, heading: meta.heading, items: [{ id: id(), primary: '', secondary: '' }] },
+		]);
+	};
+
+	return (
+		<div className="space-y-4">
+			{sections.map((sec, si) => {
+				const meta = SECTION_META[sec.type];
+				return (
+					<div key={sec.id} className="rounded-lg border border-outline-variant/70 bg-surface-low p-4">
+						<div className="flex items-center gap-2 mb-2">
+							<input
+								className="input font-semibold"
+								value={sec.heading}
+								onChange={(e) =>
+									setSections((s) => s.map((x, idx) => (idx === si ? { ...x, heading: e.target.value } : x)))
+								}
+							/>
+							<button className="btn-ghost p-1.5 rounded" onClick={() => setSections((s) => move(s, si, si - 1))} aria-label="Move up">
+								<ArrowUp className="w-4 h-4" />
+							</button>
+							<button className="btn-ghost p-1.5 rounded" onClick={() => setSections((s) => move(s, si, si + 1))} aria-label="Move down">
+								<ArrowDown className="w-4 h-4" />
+							</button>
+							<button className="btn-ghost p-1.5 rounded text-danger" onClick={() => setSections((s) => s.filter((_, idx) => idx !== si))} aria-label="Delete section">
+								<Trash2 className="w-4 h-4" />
+							</button>
+						</div>
+						<div className="space-y-2">
+							{sec.items.map((it, ii) => (
+								<div key={it.id} className="grid gap-2 sm:grid-cols-[1fr_1fr_auto] items-center">
+									<input className="input" placeholder={meta.primary} value={it.primary} onChange={(e) => setItem(si, ii, { primary: e.target.value })} />
+									<input className="input" placeholder={meta.secondary} value={it.secondary} onChange={(e) => setItem(si, ii, { secondary: e.target.value })} />
+									<button className="btn-ghost p-2 rounded text-danger justify-self-start" onClick={() => removeItem(si, ii)} aria-label="Remove item">
+										<Trash2 className="w-4 h-4" />
+									</button>
+								</div>
+							))}
+						</div>
+						<button className="mt-2 text-primary text-sm font-semibold flex items-center gap-1.5" onClick={() => addItem(si)}>
+							<Plus className="w-4 h-4" /> Add {sec.type === 'links' ? 'link' : 'item'}
+						</button>
+					</div>
+				);
+			})}
+
+			<div className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-outline-variant p-3">
+				<span className="text-sm text-on-surface-variant">Add a section:</span>
+				<select className="input max-w-52" value={addType} onChange={(e) => setAddType(e.target.value as SectionType)}>
+					{SECTION_ORDER.map((t) => (
+						<option key={t} value={t}>
+							{SECTION_META[t].label}
+						</option>
+					))}
+				</select>
+				<button className="btn btn-primary" onClick={addSection}>
+					<Plus className="w-4 h-4" /> Add
+				</button>
+			</div>
 		</div>
 	);
 }

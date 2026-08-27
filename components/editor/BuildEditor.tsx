@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import type { User } from '@supabase/supabase-js';
-import { Eye, Download, BarChart3, Check, Loader2, X } from 'lucide-react';
+import { Eye, Download, BarChart3, Check, Loader2, X, Share2, Copy } from 'lucide-react';
 import type { ResumeData } from '@/lib/types';
 import { getTemplate } from '@/lib/templates/registry';
 import { analyzeResume } from '@/lib/analyzer/analyze';
@@ -19,6 +19,7 @@ import {
 	SkillsSection,
 	ProjectsSection,
 	CustomizeSection,
+	CustomSectionsEditor,
 } from './sections';
 import { ResumePaper } from '@/components/resume/ResumePaper';
 
@@ -30,6 +31,8 @@ export function BuildEditor() {
 	const [user, setUser] = useState<User | null>(null);
 	const [saveState, setSaveState] = useState<SaveState>('idle');
 	const [showPreview, setShowPreview] = useState(false);
+	const [shareUrl, setShareUrl] = useState<string | null>(null);
+	const [sharing, setSharing] = useState(false);
 	const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	// Initialise the working draft.
@@ -127,6 +130,43 @@ export function BuildEditor() {
 		}
 	};
 
+	const onShare = async () => {
+		if (!draft) return;
+		setSharing(true);
+		try {
+			const u = user ?? (await ensureSession());
+			if (!user) setUser(u);
+			let rowId = draft.id;
+			if (!rowId) {
+				const row = await createResume({
+					userId: u.id,
+					title: draft.title,
+					templateSlug: draft.templateSlug,
+					data: draft.data,
+					atsScore: analyzeResume(draft.data).score,
+				});
+				rowId = row.id;
+				apply({ ...draft, id: rowId });
+			} else {
+				await updateResume(rowId, {
+					title: draft.title,
+					template_slug: draft.templateSlug,
+					data: draft.data,
+				});
+			}
+			await updateResume(rowId, { is_public: true });
+			const url = `${window.location.origin}/r/${rowId}`;
+			setShareUrl(url);
+			try {
+				await navigator.clipboard.writeText(url);
+			} catch {
+				/* clipboard may be blocked */
+			}
+		} finally {
+			setSharing(false);
+		}
+	};
+
 	if (!draft) {
 		return (
 			<div className="flex items-center justify-center py-32 text-outline">
@@ -172,6 +212,10 @@ export function BuildEditor() {
 					<Link href="/preview" className="btn btn-outline">
 						<Download className="w-4 h-4" /> <span className="hidden sm:inline">PDF</span>
 					</Link>
+					<button className="btn btn-outline" onClick={onShare} disabled={sharing}>
+						{sharing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />}
+						<span className="hidden sm:inline">Share</span>
+					</button>
 					<button className="btn btn-primary" onClick={onSave}>
 						{saveState === 'saving' ? (
 							<Loader2 className="w-4 h-4 animate-spin" />
@@ -182,6 +226,23 @@ export function BuildEditor() {
 					</button>
 				</div>
 			</div>
+
+			{shareUrl && (
+				<div className="mt-3 card p-3 flex items-center gap-2 text-sm">
+					<Share2 className="w-4 h-4 text-primary shrink-0" />
+					<a href={shareUrl} target="_blank" rel="noopener" className="text-primary truncate flex-1">
+						{shareUrl}
+					</a>
+					<button
+						className="btn-ghost p-1.5 rounded"
+						onClick={() => navigator.clipboard?.writeText(shareUrl)}
+						aria-label="Copy link"
+					>
+						<Copy className="w-4 h-4" />
+					</button>
+					<span className="label-caps text-success whitespace-nowrap">Public · copied</span>
+				</div>
+			)}
 
 			<div className="mt-6 grid lg:grid-cols-[1fr_460px] gap-6 items-start">
 				{/* Editor */}
@@ -207,6 +268,9 @@ export function BuildEditor() {
 					</CollapsibleCard>
 					<CollapsibleCard title="Projects" defaultOpen={false}>
 						<ProjectsSection data={draft.data} update={update} />
+					</CollapsibleCard>
+					<CollapsibleCard title="➕ Additional sections" defaultOpen={false}>
+						<CustomSectionsEditor data={draft.data} update={update} />
 					</CollapsibleCard>
 				</div>
 

@@ -58,6 +58,40 @@ export interface ResumeStyle {
 	font?: FontChoice;
 }
 
+export type SectionType = 'certifications' | 'languages' | 'awards' | 'links' | 'custom';
+
+export interface CustomSectionItem {
+	id: string;
+	primary: string;
+	secondary: string;
+}
+
+export interface CustomSection {
+	id: string;
+	type: SectionType;
+	heading: string;
+	items: CustomSectionItem[];
+}
+
+export interface SectionMeta {
+	label: string;
+	heading: string;
+	primary: string;
+	secondary: string;
+	isLink?: boolean;
+	secondaryOptional?: boolean;
+}
+
+export const SECTION_META: Record<SectionType, SectionMeta> = {
+	certifications: { label: 'Certifications', heading: 'Certifications', primary: 'Certification name', secondary: 'Issuer · Year' },
+	languages: { label: 'Languages', heading: 'Languages', primary: 'Language', secondary: 'Proficiency (e.g. Fluent)' },
+	awards: { label: 'Awards & Honors', heading: 'Awards & Honors', primary: 'Award', secondary: 'Year' },
+	links: { label: 'Links / Website', heading: 'Links', primary: 'Label (e.g. Portfolio)', secondary: 'URL', isLink: true },
+	custom: { label: 'Custom section', heading: 'Custom Section', primary: 'Detail', secondary: 'Note (optional)', secondaryOptional: true },
+};
+
+export const SECTION_ORDER: SectionType[] = ['links', 'certifications', 'languages', 'awards', 'custom'];
+
 export interface ResumeData {
 	personal: PersonalInfo;
 	experience: ExperienceItem[];
@@ -65,6 +99,8 @@ export interface ResumeData {
 	skills: string[];
 	projects: ProjectItem[];
 	certifications: CertificationItem[];
+	/** User-added extra sections (certifications, languages, links, custom…). */
+	sections?: CustomSection[];
 	/** Optional per-resume design overrides on top of the chosen template. */
 	style?: ResumeStyle;
 }

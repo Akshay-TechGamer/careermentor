@@ -112,6 +112,54 @@ function SkillsBlock({ data, accent, light }: { data: ResumeData; accent: string
 	);
 }
 
+function CustomBlocks({ data, accent }: { data: ResumeData; accent: string }) {
+	const sections = (data.sections ?? []).filter((s) => s.items.some((it) => it.primary || it.secondary));
+	if (sections.length === 0) return null;
+	return (
+		<>
+			{sections.map((sec) => (
+				<div key={sec.id}>
+					<SectionTitle accent={accent}>{sec.heading}</SectionTitle>
+					{sec.type === 'links' ? (
+						<div className="space-y-0.5">
+							{sec.items
+								.filter((it) => it.primary || it.secondary)
+								.map((it) => (
+									<div key={it.id} className="text-[11px]">
+										{it.primary && <span className="font-semibold">{it.primary}: </span>}
+										<span style={{ color: accent }}>{it.secondary}</span>
+									</div>
+								))}
+						</div>
+					) : sec.type === 'languages' ? (
+						<div className="flex flex-wrap gap-x-4 gap-y-0.5">
+							{sec.items
+								.filter((it) => it.primary)
+								.map((it) => (
+									<span key={it.id} className="text-[11px]">
+										<span className="font-semibold">{it.primary}</span>
+										{it.secondary && <span className="opacity-70"> — {it.secondary}</span>}
+									</span>
+								))}
+						</div>
+					) : (
+						<div className="space-y-0.5">
+							{sec.items
+								.filter((it) => it.primary || it.secondary)
+								.map((it) => (
+									<div key={it.id} className="text-[11.5px] flex justify-between gap-2">
+										<span className="font-semibold">{it.primary}</span>
+										{it.secondary && <span className="opacity-70 whitespace-nowrap">{it.secondary}</span>}
+									</div>
+								))}
+						</div>
+					)}
+				</div>
+			))}
+		</>
+	);
+}
+
 function SingleColumn({
 	data,
 	accent,
@@ -175,6 +223,8 @@ function SingleColumn({
 					))}
 				</>
 			)}
+
+			<CustomBlocks data={data} accent={accent} />
 		</div>
 	);
 }
@@ -251,6 +301,7 @@ function TwoColumn({ data, accent, fontFamily }: { data: ResumeData; accent: str
 						))}
 					</>
 				)}
+				<CustomBlocks data={data} accent={accent} />
 			</main>
 		</div>
 	);

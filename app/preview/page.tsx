@@ -17,10 +17,10 @@ export default function PreviewPage() {
 	}, []);
 
 	const onDownload = async () => {
-		if (!draft) return;
+		if (!draft || !sheetRef.current) return;
 		setBusy(true);
 		try {
-			await downloadResumePdf(draft.data, draft.templateSlug, draft.title || 'resume');
+			await downloadResumePdf(sheetRef.current, draft.data, draft.templateSlug, draft.title || 'resume');
 		} catch (e) {
 			alert('Could not generate the PDF. Please try again.');
 			console.error(e);

@@ -1,8 +1,9 @@
 'use client';
 
-// Generates a real, selectable, multi-page-aware .pdf directly from resume data
-// using jsPDF vector text (no HTML rasterization, no print dialog). Only emits
-// as many pages as the content needs.
+// PDF export. Primary path captures the actual rendered resume element so the
+// download looks EXACTLY like the on-screen preview (WYSIWYG). If capture fails,
+// it silently falls back to a vector jsPDF render (still a real .pdf, never the
+// print dialog).
 
 import type { ResumeData } from '@/lib/types';
 import { getTemplate } from '@/lib/templates/registry';
@@ -23,7 +24,59 @@ function contactLine(data: ResumeData): string {
 	return [p.email, p.phone, p.location, ...p.links.map((l) => l.url)].filter(Boolean).join('   |   ');
 }
 
+function fileNameFor(data: ResumeData, fallback: string): string {
+	const name = (data.personal.fullName || '').trim();
+	const base = name ? `${name} - Resume` : fallback || 'CareerMentor Resume';
+	return base.replace(/[^\w \-]+/g, '').replace(/\s+/g, ' ').trim() || 'CareerMentor Resume';
+}
+
+/**
+ * WYSIWYG export — rasterizes the rendered A4 resume element into a PDF that
+ * matches the preview pixel-for-pixel. `element` should be the full-size (794px)
+ * sheet, not a scaled preview.
+ */
 export async function downloadResumePdf(
+	element: HTMLElement,
+	data: ResumeData,
+	templateSlug: string,
+	filename: string,
+): Promise<void> {
+	try {
+		const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+			import('html2canvas-pro'),
+			import('jspdf'),
+		]);
+		if (document.fonts && document.fonts.ready) {
+			await document.fonts.ready;
+		}
+		const canvas = await html2canvas(element, {
+			scale: 2,
+			backgroundColor: '#ffffff',
+			useCORS: true,
+			logging: false,
+		});
+		const imgData = canvas.toDataURL('image/jpeg', 0.95);
+		const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+		const imgH = (canvas.height * PAGE_W) / canvas.width;
+		let heightLeft = imgH;
+		let position = 0;
+		pdf.addImage(imgData, 'JPEG', 0, position, PAGE_W, imgH);
+		heightLeft -= PAGE_H;
+		// Only add a page for genuine overflow (avoids a spurious blank 2nd page).
+		while (heightLeft > 1) {
+			position -= PAGE_H;
+			pdf.addPage();
+			pdf.addImage(imgData, 'JPEG', 0, position, PAGE_W, imgH);
+			heightLeft -= PAGE_H;
+		}
+		pdf.save(`${fileNameFor(data, filename)}.pdf`);
+	} catch {
+		await downloadVectorPdf(data, templateSlug, filename);
+	}
+}
+
+/** Fallback: build the PDF from data with jsPDF vector text. */
+export async function downloadVectorPdf(
 	data: ResumeData,
 	templateSlug: string,
 	filename: string,
@@ -40,9 +93,7 @@ export async function downloadResumePdf(
 	} else {
 		renderSingle(doc, data, accent, font, layout === 'academic');
 	}
-
-	const safe = filename.replace(/[^a-z0-9-_]+/gi, '-').replace(/^-+|-+$/g, '') || 'resume';
-	doc.save(`${safe}.pdf`);
+	doc.save(`${fileNameFor(data, filename)}.pdf`);
 }
 
 /** Simple text document PDF — used for cover letters. */
@@ -70,7 +121,7 @@ export async function downloadTextPdf(body: string, filename: string): Promise<v
 			y += 6;
 		}
 	}
-	const safe = filename.replace(/[^a-z0-9-_]+/gi, '-').replace(/^-+|-+$/g, '') || 'cover-letter';
+	const safe = filename.replace(/[^\w \-]+/g, '').replace(/\s+/g, ' ').trim() || 'Cover Letter';
 	doc.save(`${safe}.pdf`);
 }
 
@@ -220,6 +271,27 @@ function renderSingle(doc: Doc, data: ResumeData, accent: string, font: string, 
 			state.y += 1;
 		}
 	}
+
+	for (const sec of data.sections ?? []) {
+		const items = sec.items.filter((it) => it.primary || it.secondary);
+		if (!items.length) continue;
+		section(sec.heading);
+		for (const it of items) {
+			ensure(5);
+			doc.setFont(font, 'bold');
+			doc.setFontSize(9.5);
+			doc.setTextColor(30, 30, 30);
+			doc.text(it.primary || '', M, state.y);
+			if (it.secondary) {
+				doc.setFont(font, 'normal');
+				doc.setFontSize(9);
+				doc.setTextColor(sec.type === 'links' ? ar : 95, sec.type === 'links' ? ag : 95, sec.type === 'links' ? ab : 95);
+				doc.text(it.secondary, PAGE_W - M, state.y, { align: 'right' });
+			}
+			state.y += 4.6;
+		}
+		state.y += 1.5;
+	}
 }
 
 /* ---------------- two column (with optional photo) ---------------- */
@@ -368,5 +440,24 @@ function renderTwoColumn(doc: Doc, data: ResumeData, accent: string, font: strin
 			}
 			state.y += 2.5;
 		}
+	}
+
+	for (const sec of data.sections ?? []) {
+		const items = sec.items.filter((it) => it.primary || it.secondary);
+		if (!items.length) continue;
+		section(sec.heading);
+		for (const it of items) {
+			ensure(5);
+			doc.setFont(font, 'bold');
+			doc.setFontSize(9.5);
+			doc.setTextColor(30, 30, 30);
+			const label = it.secondary ? `${it.primary}${it.primary ? ': ' : ''}${it.secondary}` : it.primary;
+			(doc.splitTextToSize(label, mW) as string[]).forEach((ln) => {
+				ensure(4.4);
+				doc.text(ln, mx, state.y);
+				state.y += 4.2;
+			});
+		}
+		state.y += 1.5;
 	}
 }
