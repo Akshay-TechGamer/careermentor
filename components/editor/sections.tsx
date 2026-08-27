@@ -207,13 +207,26 @@ export function ExperienceSection({ data, update }: { data: ResumeData; update: 
 						/>
 					</Labeled>
 					{e.bullets.some((b) => b.trim()) && (
-						<button
-							type="button"
-							className="btn btn-outline text-sm mt-2"
-							onClick={() => setItem(i, { bullets: improveBullets(e.bullets.filter(Boolean)) })}
-						>
-							<Sparkles className="w-4 h-4" /> Improve writing
-						</button>
+						<div className="flex flex-wrap items-center gap-2 mt-2">
+							<button
+								type="button"
+								className="btn btn-outline text-sm"
+								onClick={() => setItem(i, { bullets: improveBullets(e.bullets.filter(Boolean)) })}
+							>
+								<Sparkles className="w-4 h-4" /> Improve writing
+							</button>
+							<button
+								type="button"
+								disabled
+								title="Coming soon"
+								className="btn btn-ghost text-sm opacity-60 cursor-not-allowed"
+							>
+								<Sparkles className="w-4 h-4" /> AI Rewrite (Pro)
+								<span className="label-caps rounded-full px-2 py-0.5 ml-1 bg-surface-container text-on-surface-variant">
+									Soon
+								</span>
+							</button>
+						</div>
 					)}
 				</EntryCard>
 			))}
