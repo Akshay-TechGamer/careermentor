@@ -221,7 +221,7 @@ export function BuildEditor() {
 						{template.name} ↗
 					</Link>
 				</div>
-				<div className="flex items-center gap-2">
+				<div className="flex flex-wrap items-center justify-end gap-2">
 					<span
 						className="hidden sm:flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold font-[family-name:var(--font-mono)]"
 						style={{
@@ -231,16 +231,20 @@ export function BuildEditor() {
 					>
 						{score}/100
 					</span>
-					<button className="btn btn-outline lg:hidden" onClick={() => setShowPreview(true)}>
-						<Eye className="w-4 h-4" /> Preview
+					<button
+						className="btn btn-outline lg:hidden"
+						onClick={() => setShowPreview(true)}
+						aria-label="Preview"
+					>
+						<Eye className="w-4 h-4" /> <span className="hidden sm:inline">Preview</span>
 					</button>
-					<Link href="/analyze" className="btn btn-outline">
+					<Link href="/analyze" className="btn btn-outline" aria-label="Analyze">
 						<BarChart3 className="w-4 h-4" /> <span className="hidden sm:inline">Analyze</span>
 					</Link>
-					<Link href="/preview" className="btn btn-outline">
+					<Link href="/preview" className="btn btn-outline" aria-label="Download PDF">
 						<Download className="w-4 h-4" /> <span className="hidden sm:inline">PDF</span>
 					</Link>
-					<button className="btn btn-outline" onClick={onShare} disabled={sharing}>
+					<button className="btn btn-outline" onClick={onShare} disabled={sharing} aria-label="Share">
 						{sharing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />}
 						<span className="hidden sm:inline">Share</span>
 					</button>
@@ -273,8 +277,10 @@ export function BuildEditor() {
 			)}
 
 			<div className="mt-6 grid lg:grid-cols-[1fr_460px] gap-6 items-start">
-				{/* Editor */}
-				<div className="space-y-4">
+				{/* Editor — min-w-0 lets the column shrink on narrow phones; without it
+				    the grid item's automatic minimum keeps it as wide as its content
+				    (the skill rows) and the page scrolls sideways. */}
+				<div className="space-y-4 min-w-0">
 					<CollapsibleCard title="🎨 Design & Customize" defaultOpen={false}>
 						<CustomizeSection data={draft.data} update={update} />
 					</CollapsibleCard>
