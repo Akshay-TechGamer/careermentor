@@ -60,7 +60,11 @@ export function BuildEditor() {
 				// layout/accent/font overrides so the new template shows through.
 				setDraft(
 					templateParam && templateParam !== existing.templateSlug
-						? { ...existing, templateSlug: templateParam, data: { ...existing.data, style: undefined } }
+						? {
+								...existing,
+								templateSlug: templateParam,
+								data: { ...existing.data, style: { font: getTemplate(templateParam).font } },
+							}
 						: existing,
 				);
 			} else {

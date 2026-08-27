@@ -4,6 +4,7 @@
 // On save/login it syncs to Supabase.
 
 import { sampleResume, type ResumeData } from '@/lib/types';
+import { getTemplate } from '@/lib/templates/registry';
 
 const KEY = 'cm_draft_v1';
 
@@ -43,10 +44,12 @@ export function clearDraft(): void {
 }
 
 export function newDraft(templateSlug: string, seedSample = false): Draft {
+	const data = seedSample ? sampleResume() : sampleResume();
+	data.style = { font: getTemplate(templateSlug).font };
 	return {
 		id: null,
 		title: 'Untitled Resume',
 		templateSlug,
-		data: seedSample ? sampleResume() : sampleResume(),
+		data,
 	};
 }
