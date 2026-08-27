@@ -124,22 +124,61 @@ function EducationBlock({ data }: { data: ResumeData }) {
 	);
 }
 
-function SkillsBlock({ data, accent, light }: { data: ResumeData; accent: string; light?: boolean }) {
+/* Two-column skill grid with accent underline bars (resume.io "Stockholm" look). */
+function SkillGrid({ data, accent }: { data: ResumeData; accent: string }) {
 	if (data.skills.length === 0) return null;
 	return (
-		<div className="flex flex-wrap gap-1.5">
+		<div className="grid grid-cols-2 gap-x-8 gap-y-2">
 			{data.skills.map((s, i) => (
-				<span
-					key={i}
-					className="text-[calc(10.5px_*_var(--rz-fs))] rounded px-1.5 py-0.5"
-					style={
-						light
-							? { background: 'rgba(255,255,255,0.18)' }
-							: { background: `${accent}18`, color: accent }
-					}
-				>
-					{s}
-				</span>
+				<div key={i}>
+					<div className="text-[calc(11px_*_var(--rz-fs))]">{s}</div>
+					<div className="mt-1 h-[3px] bg-black/10">
+						<div className="h-[3px]" style={{ width: `${74 + (i % 3) * 8}%`, background: accent }} />
+					</div>
+				</div>
+			))}
+		</div>
+	);
+}
+
+/* Stacked skill bars for narrow sidebars. `light` renders white-on-accent. */
+function SkillBars({ data, accent, light }: { data: ResumeData; accent: string; light?: boolean }) {
+	if (data.skills.length === 0) return null;
+	return (
+		<div className="space-y-1.5">
+			{data.skills.map((s, i) => (
+				<div key={i}>
+					<div className={`text-[calc(10.5px_*_var(--rz-fs))] mb-0.5 ${light ? 'opacity-95' : ''}`}>{s}</div>
+					<div className={`h-[3px] ${light ? 'bg-white/25' : 'bg-black/10'}`}>
+						<div
+							className="h-[3px]"
+							style={{ width: `${74 + (i % 3) * 8}%`, background: light ? '#fff' : accent }}
+						/>
+					</div>
+				</div>
+			))}
+		</div>
+	);
+}
+
+/* Dot-rated skills (resume.io "Milan" look). Decorative rating, deterministic. */
+function SkillDots({ data, accent }: { data: ResumeData; accent: string }) {
+	if (data.skills.length === 0) return null;
+	return (
+		<div className="space-y-1.5">
+			{data.skills.map((s, i) => (
+				<div key={i}>
+					<div className="text-[calc(10.5px_*_var(--rz-fs))] mb-0.5">{s}</div>
+					<div className="flex gap-1">
+						{Array.from({ length: 5 }).map((_, d) => (
+							<span
+								key={d}
+								className="w-[7px] h-[7px] rounded-full"
+								style={{ background: d < 4 + (i % 2) ? accent : 'rgba(0,0,0,0.15)' }}
+							/>
+						))}
+					</div>
+				</div>
 			))}
 		</div>
 	);
@@ -276,7 +315,7 @@ function orderedCoreBlocks(data: ResumeData, accent: string, allowed: CoreSectio
 		skills: data.skills.length > 0 ? (
 			<>
 				<SectionTitle accent={accent}>Skills</SectionTitle>
-				<SkillsBlock data={data} accent={accent} />
+				<SkillGrid data={data} accent={accent} />
 			</>
 		) : null,
 		projects: data.projects.length > 0 ? (
@@ -338,7 +377,7 @@ function TwoColumn({ data, accent, fontFamily }: { data: ResumeData; accent: str
 					<div className="mt-4">
 						<h2 className="text-[calc(11px_*_var(--rz-fs))] font-bold uppercase tracking-wide opacity-90">Skills</h2>
 						<div className="mt-1.5">
-							<SkillsBlock data={data} accent={accent} light />
+							<SkillBars data={data} accent={accent} light />
 						</div>
 					</div>
 				)}
@@ -382,15 +421,26 @@ function HeaderBand({ data, accent, fontFamily }: { data: ResumeData; accent: st
 	const contact = [p.email, p.phone, p.location, ...p.links.map((l) => l.url)].filter(Boolean);
 	return (
 		<div className="bg-white text-[#111c2d] w-full h-full" style={{ fontFamily }}>
-			<div style={{ background: accent }} className="text-white px-8 py-7 text-center">
+			{/* Madrid-style band: square photo left, caps name, contact right */}
+			<div style={{ background: accent }} className="text-white flex items-center gap-5 px-8 py-6">
 				{p.photo && (
 					// eslint-disable-next-line @next/next/no-img-element
-					<img src={p.photo} alt="" className="w-20 h-20 rounded-full object-cover mx-auto mb-2 border-2 border-white/50" />
+					<img src={p.photo} alt="" className="w-20 h-20 rounded-md object-cover shrink-0" />
 				)}
-				<h1 className="text-[calc(24px_*_var(--rz-fs))] font-extrabold leading-tight">{p.fullName || 'Your Name'}</h1>
-				<div className="text-[calc(11px_*_var(--rz-fs))] tracking-[0.2em] uppercase opacity-90 mt-0.5">{p.title}</div>
+				<div className="flex-1 min-w-0">
+					<h1 className="text-[calc(25px_*_var(--rz-fs))] font-extrabold uppercase leading-none tracking-tight">
+						{p.fullName || 'Your Name'}
+					</h1>
+					<div className="text-[calc(11px_*_var(--rz-fs))] tracking-[0.18em] uppercase opacity-90 mt-1.5">{p.title}</div>
+				</div>
 				{contact.length > 0 && (
-					<div className="mt-2 text-[calc(10.5px_*_var(--rz-fs))] opacity-90">{contact.join('     •     ')}</div>
+					<div className="text-right text-[calc(10px_*_var(--rz-fs))] opacity-90 space-y-0.5 shrink-0 max-w-[38%]">
+						{contact.map((c, i) => (
+							<div key={i} className="truncate">
+								{c}
+							</div>
+						))}
+					</div>
 				)}
 			</div>
 			<div style={{ padding: 'var(--rz-pad, 32px)' }}>
@@ -430,16 +480,7 @@ function SidebarLeft({ data, accent, fontFamily }: { data: ResumeData; accent: s
 					{data.skills.length > 0 && (
 						<div>
 							<SidebarHeading accent={accent}>Skills</SidebarHeading>
-							<div className="space-y-1.5">
-								{data.skills.map((s, i) => (
-									<div key={i}>
-										<div className="text-[calc(10.5px_*_var(--rz-fs))] mb-0.5">{s}</div>
-										<div className="h-1 rounded-full bg-black/10">
-											<div className="h-1 rounded-full" style={{ width: `${72 + (i % 3) * 9}%`, background: accent }} />
-										</div>
-									</div>
-								))}
-							</div>
+							<SkillDots data={data} accent={accent} />
 						</div>
 					)}
 					{data.education.length > 0 && (
@@ -470,19 +511,18 @@ function SidebarRight({ data, accent, fontFamily }: { data: ResumeData; accent: 
 	const contact = [p.email, p.phone, p.location, ...p.links.map((l) => l.url)].filter(Boolean);
 	return (
 		<div className="bg-white text-[#111c2d] w-full h-full" style={{ fontFamily, padding: 'var(--rz-pad, 32px)' }}>
-			<header className="flex items-start justify-between gap-4">
-				<div>
-					<h1 className="text-[calc(26px_*_var(--rz-fs))] font-extrabold leading-none" style={{ color: accent }}>
-						{p.fullName || 'Your Name'}
-					</h1>
-					<div className="text-[calc(14px_*_var(--rz-fs))] font-bold mt-1" style={{ color: accent }}>
-						{p.title}
-					</div>
-				</div>
+			{/* Stockholm-style header: small rounded-square photo beside a dark name */}
+			<header className="flex items-center gap-4">
 				{p.photo && (
 					// eslint-disable-next-line @next/next/no-img-element
-					<img src={p.photo} alt="" className="w-16 h-16 rounded-full object-cover shrink-0" />
+					<img src={p.photo} alt="" className="w-14 h-14 rounded-lg object-cover shrink-0" />
 				)}
+				<div>
+					<h1 className="text-[calc(26px_*_var(--rz-fs))] font-extrabold leading-none">
+						{p.fullName || 'Your Name'}
+					</h1>
+					<div className="text-[calc(12px_*_var(--rz-fs))] opacity-70 mt-1">{p.title}</div>
+				</div>
 			</header>
 			<div className="h-px w-full my-4" style={{ background: `${accent}30` }} />
 			<div className="flex gap-7">
@@ -503,16 +543,7 @@ function SidebarRight({ data, accent, fontFamily }: { data: ResumeData; accent: 
 					{data.skills.length > 0 && (
 						<div>
 							<SidebarHeading accent={accent}>Skills</SidebarHeading>
-							<div className="space-y-1.5">
-								{data.skills.map((s, i) => (
-									<div key={i}>
-										<div className="text-[calc(10.5px_*_var(--rz-fs))] mb-0.5">{s}</div>
-										<div className="h-1 rounded-full bg-black/10">
-											<div className="h-1 rounded-full" style={{ width: `${72 + (i % 3) * 9}%`, background: accent }} />
-										</div>
-									</div>
-								))}
-							</div>
+							<SkillBars data={data} accent={accent} />
 						</div>
 					)}
 					<CustomBlocks data={data} accent={accent} />
@@ -563,7 +594,7 @@ function LabelLeft({ data, accent, fontFamily }: { data: ResumeData; accent: str
 			)}
 			{data.skills.length > 0 && (
 				<Row label="Skills">
-					<SkillsBlock data={data} accent={accent} />
+					<SkillGrid data={data} accent={accent} />
 				</Row>
 			)}
 			{customs.map((sec) => (

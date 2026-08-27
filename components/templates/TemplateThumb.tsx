@@ -1,160 +1,62 @@
+import { ResumeRenderer } from '@/components/resume/ResumeRenderer';
+import { sampleResume, type ResumeData } from '@/lib/types';
 import type { Template } from '@/lib/templates/registry';
 
-// A lightweight, self-contained visual preview of a template (no external
-// images). Reflects the layout + accent so each template looks distinct.
+// Renders a real, scaled-down resume (sample data) as the template preview —
+// the same approach resume.io uses, so what you pick is what you get.
 
-function Lines({ n, className = '' }: { n: number; className?: string }) {
-	return (
-		<div className={`space-y-1 ${className}`}>
-			{Array.from({ length: n }).map((_, i) => (
-				<div key={i} className="h-1 rounded-full bg-black/10" style={{ width: `${90 - (i % 3) * 18}%` }} />
-			))}
-		</div>
-	);
+/** Neutral placeholder headshot for photo templates (inline SVG, no asset). */
+const THUMB_PHOTO =
+	"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect width='96' height='96' fill='%23e2e8f0'/><circle cx='48' cy='38' r='16' fill='%2394a3b8'/><path d='M16 88c4-18 18-26 32-26s28 8 32 26z' fill='%2394a3b8'/></svg>";
+
+/** Sample data padded out so tall layouts don't look empty in the preview. */
+function thumbData(template: Template): ResumeData {
+	const data = sampleResume();
+	data.style = { font: template.font };
+	if (template.hasPhoto) {
+		data.personal.photo = THUMB_PHOTO;
+	}
+	data.experience.push({
+		id: 'e2',
+		role: 'UX Designer',
+		company: 'Innova Labs',
+		start: '2018',
+		end: '2021',
+		current: false,
+		bullets: [
+			'Shipped a mobile onboarding flow that raised activation by 18%.',
+			'Ran 40+ usability sessions and turned findings into roadmap wins.',
+		],
+	});
+	data.projects.push({
+		id: 'p1',
+		name: 'Design Tokens Pipeline',
+		description: 'Automated theme delivery across web and mobile apps.',
+		link: '',
+	});
+	return data;
 }
 
-function Bars({ n, accent }: { n: number; accent: string }) {
-	return (
-		<div className="space-y-1">
-			{Array.from({ length: n }).map((_, i) => (
-				<div key={i} className="h-1 rounded-full bg-black/10">
-					<div className="h-1 rounded-full" style={{ width: `${60 + (i % 3) * 15}%`, background: accent }} />
-				</div>
-			))}
-		</div>
-	);
-}
+// A4 sheet is 794×1123 CSS px; scale it to a 220px-wide card thumb.
+const SHEET_W = 794;
+const SHEET_H = 1123;
+const THUMB_W = 220;
+const SCALE = THUMB_W / SHEET_W;
 
 export function TemplateThumb({ template }: { template: Template }) {
-	const accent = template.accent;
-	const layout = template.layout;
-
-	const inner = () => {
-		if (layout === 'twoColumn') {
-			return (
-				<div className="flex h-full">
-					<div className="w-1/3 h-full p-2" style={{ background: accent }}>
-						<div className="w-8 h-8 rounded-full bg-white/30 mx-auto" />
-						<div className="mt-2 space-y-1">
-							{Array.from({ length: 5 }).map((_, i) => (
-								<div key={i} className="h-1 rounded-full bg-white/40" style={{ width: `${80 - i * 8}%` }} />
-							))}
-						</div>
-					</div>
-					<div className="flex-1 p-2.5">
-						<div className="h-1.5 w-3/5 rounded" style={{ background: accent }} />
-						<div className="mt-1 h-1 w-2/5 rounded-full bg-black/20" />
-						<div className="mt-3">
-							<Lines n={4} />
-						</div>
-						<div className="mt-3">
-							<Lines n={4} />
-						</div>
-					</div>
-				</div>
-			);
-		}
-		if (layout === 'headerBand') {
-			return (
-				<div className="h-full">
-					<div className="p-2 text-center" style={{ background: accent }}>
-						<div className="w-6 h-6 rounded-full bg-white/30 mx-auto" />
-						<div className="mt-1 h-1.5 w-1/2 rounded bg-white/60 mx-auto" />
-						<div className="mt-1 h-1 w-1/3 rounded-full bg-white/40 mx-auto" />
-					</div>
-					<div className="p-3">
-						<div className="h-1 w-1/4 rounded" style={{ background: accent }} />
-						<Lines n={3} className="mt-1" />
-						<div className="h-1 w-1/4 rounded mt-3" style={{ background: accent }} />
-						<Lines n={3} className="mt-1" />
-					</div>
-				</div>
-			);
-		}
-		if (layout === 'sidebarLeft') {
-			return (
-				<div className="h-full p-3">
-					<div className="h-2 w-3/5 rounded" style={{ background: accent }} />
-					<div className="mt-2 h-px w-full" style={{ background: `${accent}55` }} />
-					<div className="flex gap-2 mt-2">
-						<div className="w-1/3">
-							<div className="h-1 w-3/4 rounded mb-1" style={{ background: accent }} />
-							<Bars n={4} accent={accent} />
-						</div>
-						<div className="flex-1">
-							<div className="h-1 w-1/3 rounded" style={{ background: accent }} />
-							<Lines n={4} className="mt-1" />
-						</div>
-					</div>
-				</div>
-			);
-		}
-		if (layout === 'sidebarRight') {
-			return (
-				<div className="h-full p-3">
-					<div className="flex items-start justify-between">
-						<div className="h-2 w-2/5 rounded" style={{ background: accent }} />
-						<div className="w-5 h-5 rounded-full bg-black/10" />
-					</div>
-					<div className="mt-2 h-px w-full" style={{ background: `${accent}55` }} />
-					<div className="flex gap-2 mt-2">
-						<div className="flex-1">
-							<div className="h-1 w-1/3 rounded" style={{ background: accent }} />
-							<Lines n={4} className="mt-1" />
-						</div>
-						<div className="w-1/3">
-							<div className="h-1 w-3/4 rounded mb-1" style={{ background: accent }} />
-							<Bars n={4} accent={accent} />
-						</div>
-					</div>
-				</div>
-			);
-		}
-		if (layout === 'labelLeft') {
-			return (
-				<div className="h-full p-3">
-					<div className="h-1.5 w-1/2 rounded mx-auto" style={{ background: accent }} />
-					<div className="mt-3 space-y-2">
-						{Array.from({ length: 3 }).map((_, i) => (
-							<div key={i} className="flex gap-2 border-t border-black/10 pt-1.5">
-								<div className="w-1/4 h-1 rounded" style={{ background: accent }} />
-								<div className="flex-1">
-									<Lines n={2} />
-								</div>
-							</div>
-						))}
-					</div>
-				</div>
-			);
-		}
-		// classic / academic
-		return (
-			<div className="h-full p-3">
-				<div className={template.layout === 'academic' ? 'text-center' : ''}>
-					<div
-						className="h-2 w-1/2 rounded"
-						style={{ background: accent, marginInline: template.layout === 'academic' ? 'auto' : '' }}
-					/>
-					<div
-						className="mt-1 h-1 w-1/3 rounded-full bg-black/20"
-						style={{ marginInline: template.layout === 'academic' ? 'auto' : '' }}
-					/>
-				</div>
-				<div className="mt-2 h-px w-full" style={{ background: accent, opacity: 0.4 }} />
-				{[0, 1, 2].map((i) => (
-					<div key={i} className="mt-2.5">
-						<div className="h-1 w-1/4 rounded" style={{ background: accent }} />
-						<Lines n={i === 2 ? 2 : 3} className="mt-1" />
-					</div>
-				))}
-			</div>
-		);
-	};
-
 	return (
-		<div className="aspect-[4/3] p-5 flex items-center justify-center">
-			<div className="w-full max-w-[220px] aspect-[1/1.3] bg-white rounded shadow-sm overflow-hidden text-[6px]">
-				{inner()}
+		<div className="aspect-[4/3] p-5 pb-0 flex items-start justify-center overflow-hidden">
+			<div
+				className="bg-white rounded shadow-sm overflow-hidden relative shrink-0"
+				style={{ width: THUMB_W, height: Math.round(SHEET_H * SCALE) }}
+			>
+				<div
+					className="absolute top-0 left-0 origin-top-left pointer-events-none select-none"
+					style={{ width: SHEET_W, height: SHEET_H, transform: `scale(${SCALE})` }}
+					aria-hidden
+				>
+					<ResumeRenderer data={thumbData(template)} templateSlug={template.slug} />
+				</div>
 			</div>
 		</div>
 	);
