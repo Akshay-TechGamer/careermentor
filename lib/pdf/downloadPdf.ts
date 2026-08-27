@@ -58,27 +58,26 @@ export async function downloadResumePdf(
 		const imgData = canvas.toDataURL('image/jpeg', 0.95);
 		const imgH = (canvas.height * PAGE_W) / canvas.width;
 
-		if (imgH <= PAGE_H + 1) {
-			// Fits on one page: use a page sized exactly to the content (width
-			// stays 210mm) so a coloured sidebar fills it fully — no empty band.
-			const h = Math.max(imgH, 60);
-			const pdf = new jsPDF({
-				orientation: h >= PAGE_W ? 'portrait' : 'landscape',
-				unit: 'mm',
-				format: [PAGE_W, h],
-			});
-			pdf.addImage(imgData, 'JPEG', 0, 0, PAGE_W, h);
+		// Always standard A4 portrait pages.
+		const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+		// Rounding tolerance: a few mm of overflow scales down to one page
+		// instead of spilling a sliver onto a nearly-empty second page.
+		const TOLERANCE = 6;
+		if (imgH <= PAGE_H + TOLERANCE) {
+			const h = Math.min(imgH, PAGE_H);
+			const w = (canvas.width * h) / canvas.height;
+			pdf.addImage(imgData, 'JPEG', (PAGE_W - w) / 2, 0, w, h);
 			pdf.save(`${fileNameFor(data, filename)}.pdf`);
 			return;
 		}
 
-		// Longer than a page: paginate on A4.
-		const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+		// Longer than a page: paginate on A4, dropping a trailing sliver.
 		let heightLeft = imgH;
 		let position = 0;
 		pdf.addImage(imgData, 'JPEG', 0, position, PAGE_W, imgH);
 		heightLeft -= PAGE_H;
-		while (heightLeft > 1) {
+		while (heightLeft > TOLERANCE) {
 			position -= PAGE_H;
 			pdf.addPage();
 			pdf.addImage(imgData, 'JPEG', 0, position, PAGE_W, imgH);

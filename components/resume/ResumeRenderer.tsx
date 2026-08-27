@@ -15,7 +15,11 @@ import {
 import { getTemplate } from '@/lib/templates/registry';
 
 // Renders a resume document from data + template. Used for live preview and
-// (via a print stylesheet) PDF export. Sized to A4 proportions.
+// PDF export. Always at least one full A4 sheet (794x1123px @96dpi); grows
+// taller when the content overflows onto more pages.
+
+/** A4 height in CSS px at 96dpi (matches the 794px width the app renders at). */
+export const A4_HEIGHT_PX = 1123;
 
 function dateRange(start: string, end: string, current: boolean): string {
 	const e = current ? 'Present' : end;
@@ -56,8 +60,13 @@ export function ResumeRenderer({
 			<SingleColumn data={data} accent={accent} fontFamily={fontFamily} academic={layout === 'academic'} />
 		);
 
+	// A single-track grid stretches the layout to fill at least one full A4
+	// sheet (colored sidebars/bands run the whole page), growing with content.
 	return (
-		<div className="w-full h-full" style={vars}>
+		<div
+			className="w-full grid"
+			style={{ ...vars, gridTemplateRows: `minmax(${A4_HEIGHT_PX}px, auto)` }}
+		>
 			{inner}
 		</div>
 	);

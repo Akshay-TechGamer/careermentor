@@ -5,9 +5,11 @@ import type { ResumeData } from '@/lib/types';
 import { ResumeRenderer } from './ResumeRenderer';
 
 const A4_W = 794; // px @96dpi
+const A4_H = 1123;
 
-// Renders the resume at true A4 width, scaled to fit the container, and sized to
-// the content height (so short resumes don't leave a big empty coloured area).
+// Renders the resume at true A4 width, scaled to fit the container. The sheet is
+// always at least one full A4 page (the renderer enforces the minimum height)
+// and grows when content runs onto more pages.
 export function ResumePaper({
 	data,
 	templateSlug,
@@ -20,7 +22,7 @@ export function ResumePaper({
 	const outerRef = useRef<HTMLDivElement>(null);
 	const innerRef = useRef<HTMLDivElement>(null);
 	const [scale, setScale] = useState(0.5);
-	const [height, setHeight] = useState(600);
+	const [height, setHeight] = useState(A4_H);
 
 	useEffect(() => {
 		const outer = outerRef.current;
@@ -28,7 +30,7 @@ export function ResumePaper({
 		if (!outer || !inner) return;
 		const update = () => {
 			setScale(outer.clientWidth / A4_W);
-			setHeight(Math.max(inner.offsetHeight, 300));
+			setHeight(Math.max(inner.offsetHeight, A4_H));
 		};
 		const ro = new ResizeObserver(update);
 		ro.observe(outer);
