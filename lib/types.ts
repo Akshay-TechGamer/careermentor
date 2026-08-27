@@ -51,11 +51,29 @@ export interface CertificationItem {
 }
 
 export type FontChoice = 'sans' | 'serif' | 'grotesk';
+export type SpacingChoice = 'compact' | 'cozy' | 'roomy';
+export type MarginChoice = 'narrow' | 'normal' | 'wide';
 
 export interface ResumeStyle {
 	accent?: string;
 	layout?: 'classic' | 'twoColumn' | 'academic';
 	font?: FontChoice;
+	/** Vertical spacing between sections. */
+	spacing?: SpacingChoice;
+	/** Page margins (outer padding). */
+	margin?: MarginChoice;
+}
+
+/** Section-gap (px) for each spacing preset. */
+export const SPACING_GAP: Record<SpacingChoice, number> = { compact: 8, cozy: 16, roomy: 26 };
+/** Page padding (px) for each margin preset. */
+export const MARGIN_PAD: Record<MarginChoice, number> = { narrow: 22, normal: 32, wide: 46 };
+
+export function spacingGap(style?: ResumeStyle): number {
+	return SPACING_GAP[style?.spacing ?? 'cozy'];
+}
+export function marginPad(style?: ResumeStyle): number {
+	return MARGIN_PAD[style?.margin ?? 'normal'];
 }
 
 export type SectionType = 'certifications' | 'languages' | 'awards' | 'links' | 'custom';

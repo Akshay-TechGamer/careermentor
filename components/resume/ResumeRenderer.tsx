@@ -1,8 +1,10 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import {
 	FONT_FAMILY,
+	marginPad,
 	resolveSectionOrder,
 	SECTION_META,
+	spacingGap,
 	type CoreSectionKey,
 	type ResumeData,
 } from '@/lib/types';
@@ -27,23 +29,32 @@ export function ResumeRenderer({
 	const accent = data.style?.accent ?? template.accent;
 	const layout = data.style?.layout ?? template.layout;
 	const fontFamily = FONT_FAMILY[data.style?.font ?? 'sans'];
-	if (layout === 'twoColumn') {
-		return <TwoColumn data={data} accent={accent} fontFamily={fontFamily} />;
-	}
-	if (layout === 'headerBand') {
-		return <HeaderBand data={data} accent={accent} fontFamily={fontFamily} />;
-	}
-	if (layout === 'sidebarLeft') {
-		return <SidebarLeft data={data} accent={accent} fontFamily={fontFamily} />;
-	}
-	if (layout === 'sidebarRight') {
-		return <SidebarRight data={data} accent={accent} fontFamily={fontFamily} />;
-	}
-	if (layout === 'labelLeft') {
-		return <LabelLeft data={data} accent={accent} fontFamily={fontFamily} />;
-	}
+
+	// Spacing + margin presets, exposed as CSS variables the layouts read.
+	const vars = {
+		'--rz-gap': `${spacingGap(data.style)}px`,
+		'--rz-pad': `${marginPad(data.style)}px`,
+	} as CSSProperties;
+
+	const inner =
+		layout === 'twoColumn' ? (
+			<TwoColumn data={data} accent={accent} fontFamily={fontFamily} />
+		) : layout === 'headerBand' ? (
+			<HeaderBand data={data} accent={accent} fontFamily={fontFamily} />
+		) : layout === 'sidebarLeft' ? (
+			<SidebarLeft data={data} accent={accent} fontFamily={fontFamily} />
+		) : layout === 'sidebarRight' ? (
+			<SidebarRight data={data} accent={accent} fontFamily={fontFamily} />
+		) : layout === 'labelLeft' ? (
+			<LabelLeft data={data} accent={accent} fontFamily={fontFamily} />
+		) : (
+			<SingleColumn data={data} accent={accent} fontFamily={fontFamily} academic={layout === 'academic'} />
+		);
+
 	return (
-		<SingleColumn data={data} accent={accent} fontFamily={fontFamily} academic={layout === 'academic'} />
+		<div className="w-full h-full" style={vars}>
+			{inner}
+		</div>
 	);
 }
 
@@ -53,11 +64,11 @@ function Contact({ data }: { data: ResumeData }) {
 	return <p className="text-[11px] opacity-80">{items.join('  •  ')}</p>;
 }
 
-function SectionTitle({ children, accent }: { children: React.ReactNode; accent: string }) {
+function SectionTitle({ children, accent }: { children: ReactNode; accent: string }) {
 	return (
 		<h2
-			className="text-[12px] font-bold uppercase tracking-wide mt-4 mb-1.5 pb-1 border-b"
-			style={{ color: accent, borderColor: `${accent}55` }}
+			className="text-[12px] font-bold uppercase tracking-wide mb-1.5 pb-1 border-b"
+			style={{ color: accent, borderColor: `${accent}55`, marginTop: 'var(--rz-gap, 16px)' }}
 		>
 			{children}
 		</h2>
@@ -216,7 +227,10 @@ function SingleColumn({
 }) {
 	const p = data.personal;
 	return (
-		<div className="bg-white text-[#111c2d] w-full h-full p-8" style={{ fontFamily }}>
+		<div
+			className="bg-white text-[#111c2d] w-full h-full"
+			style={{ fontFamily, padding: 'var(--rz-pad, 32px)' }}
+		>
 			<header className={academic ? 'text-center' : ''}>
 				<h1 className="text-[24px] font-extrabold leading-tight" style={{ color: accent }}>
 					{p.fullName || 'Your Name'}
@@ -333,7 +347,7 @@ function TwoColumn({ data, accent, fontFamily }: { data: ResumeData; accent: str
 				)}
 			</aside>
 
-			<main className="flex-1 p-6">
+			<main className="flex-1" style={{ padding: 'var(--rz-pad, 32px)' }}>
 				{orderedCoreBlocks(data, accent, ['summary', 'experience', 'projects'])}
 				<CustomBlocks data={data} accent={accent} />
 			</main>
@@ -367,7 +381,7 @@ function HeaderBand({ data, accent, fontFamily }: { data: ResumeData; accent: st
 					<div className="mt-2 text-[10.5px] opacity-90">{contact.join('     •     ')}</div>
 				)}
 			</div>
-			<div className="p-8">
+			<div style={{ padding: 'var(--rz-pad, 32px)' }}>
 				{orderedCoreBlocks(data, accent, ['summary', 'experience', 'education', 'skills', 'projects'])}
 				<CustomBlocks data={data} accent={accent} />
 			</div>
@@ -381,7 +395,7 @@ function SidebarLeft({ data, accent, fontFamily }: { data: ResumeData; accent: s
 	const p = data.personal;
 	const contact = [p.email, p.phone, p.location, ...p.links.map((l) => l.url)].filter(Boolean);
 	return (
-		<div className="bg-white text-[#111c2d] w-full h-full p-8" style={{ fontFamily }}>
+		<div className="bg-white text-[#111c2d] w-full h-full" style={{ fontFamily, padding: 'var(--rz-pad, 32px)' }}>
 			<header>
 				<h1 className="text-[26px] font-extrabold uppercase leading-none tracking-tight" style={{ color: accent }}>
 					{p.fullName || 'Your Name'}
@@ -443,7 +457,7 @@ function SidebarRight({ data, accent, fontFamily }: { data: ResumeData; accent: 
 	const p = data.personal;
 	const contact = [p.email, p.phone, p.location, ...p.links.map((l) => l.url)].filter(Boolean);
 	return (
-		<div className="bg-white text-[#111c2d] w-full h-full p-8" style={{ fontFamily }}>
+		<div className="bg-white text-[#111c2d] w-full h-full" style={{ fontFamily, padding: 'var(--rz-pad, 32px)' }}>
 			<header className="flex items-start justify-between gap-4">
 				<div>
 					<h1 className="text-[26px] font-extrabold leading-none" style={{ color: accent }}>
@@ -510,7 +524,7 @@ function LabelLeft({ data, accent, fontFamily }: { data: ResumeData; accent: str
 	);
 	const customs = (data.sections ?? []).filter((s) => s.items.some((it) => it.primary || it.secondary));
 	return (
-		<div className="bg-white text-[#111c2d] w-full h-full p-8" style={{ fontFamily }}>
+		<div className="bg-white text-[#111c2d] w-full h-full" style={{ fontFamily, padding: 'var(--rz-pad, 32px)' }}>
 			<header className="text-center mb-4">
 				<h1 className="text-[24px] font-extrabold" style={{ color: accent }}>
 					{p.fullName || 'Your Name'}

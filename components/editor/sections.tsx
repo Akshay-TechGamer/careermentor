@@ -15,9 +15,11 @@ import {
 	type EducationItem,
 	type ExperienceItem,
 	type FontChoice,
+	type MarginChoice,
 	type ProjectItem,
 	type ResumeData,
 	type SectionType,
+	type SpacingChoice,
 } from '@/lib/types';
 import { improveBullets } from '@/lib/analyzer/analyze';
 
@@ -368,6 +370,16 @@ const FONTS: { key: FontChoice; label: string }[] = [
 	{ key: 'serif', label: 'Classic' },
 	{ key: 'grotesk', label: 'Technical' },
 ];
+const SPACINGS: { key: SpacingChoice; label: string }[] = [
+	{ key: 'compact', label: 'Compact' },
+	{ key: 'cozy', label: 'Cozy' },
+	{ key: 'roomy', label: 'Roomy' },
+];
+const MARGINS: { key: MarginChoice; label: string }[] = [
+	{ key: 'narrow', label: 'Narrow' },
+	{ key: 'normal', label: 'Normal' },
+	{ key: 'wide', label: 'Wide' },
+];
 
 export function CustomizeSection({ data, update }: { data: ResumeData; update: Update }) {
 	const style = data.style ?? {};
@@ -435,7 +447,39 @@ export function CustomizeSection({ data, update }: { data: ResumeData; update: U
 				</div>
 			</div>
 
-			{(style.accent || style.layout || style.font) && (
+			<div>
+				<span className="field-label">Spacing</span>
+				<div className="flex flex-wrap gap-2">
+					{SPACINGS.map((s) => (
+						<button
+							key={s.key}
+							type="button"
+							className={`chip ${(style.spacing ?? 'cozy') === s.key ? 'chip-on' : ''}`}
+							onClick={() => setStyle({ spacing: s.key })}
+						>
+							{s.label}
+						</button>
+					))}
+				</div>
+			</div>
+
+			<div>
+				<span className="field-label">Page margins</span>
+				<div className="flex flex-wrap gap-2">
+					{MARGINS.map((m) => (
+						<button
+							key={m.key}
+							type="button"
+							className={`chip ${(style.margin ?? 'normal') === m.key ? 'chip-on' : ''}`}
+							onClick={() => setStyle({ margin: m.key })}
+						>
+							{m.label}
+						</button>
+					))}
+				</div>
+			</div>
+
+			{(style.accent || style.layout || style.font || style.spacing || style.margin) && (
 				<button
 					type="button"
 					className="btn btn-ghost text-sm"
