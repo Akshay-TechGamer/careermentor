@@ -67,6 +67,8 @@ export interface ResumeStyle {
 	textSize?: TextSize;
 	/** Per-section spacing overrides (keyed by core section key). */
 	sectionGaps?: Record<string, SpacingChoice>;
+	/** Show skill level bars/dots (default true). Off = plain text skills. */
+	showSkillLevels?: boolean;
 }
 
 /** Section-gap (px) for each spacing preset. */
@@ -150,11 +152,43 @@ export const DEFAULT_SECTION_ORDER: CoreSectionKey[] = [
 	'projects',
 ];
 
+/** Skill rating scale: 1 (basic) to 5 (expert). */
+export const SKILL_LEVEL_MAX = 5;
+export const DEFAULT_SKILL_LEVEL = 4;
+
+/** The level for a skill: stored value, or a sensible default. */
+export function skillLevelFor(data: ResumeData, name: string): number {
+	const stored = data.skillLevels?.[name];
+	if (stored != null && stored >= 1 && stored <= SKILL_LEVEL_MAX) {
+		return stored;
+	}
+	return DEFAULT_SKILL_LEVEL;
+}
+
+/** Standard language proficiency options (label + dots out of 5). */
+export const LANGUAGE_LEVELS: { label: string; dots: number }[] = [
+	{ label: 'Native', dots: 5 },
+	{ label: 'Fluent', dots: 5 },
+	{ label: 'Professional', dots: 4 },
+	{ label: 'Intermediate', dots: 3 },
+	{ label: 'Conversational', dots: 2 },
+	{ label: 'Basic', dots: 1 },
+];
+
+/** Dots (1–5) for a language proficiency label, or null if it's free text. */
+export function languageDots(text: string): number | null {
+	const t = text.trim().toLowerCase();
+	const hit = LANGUAGE_LEVELS.find((l) => l.label.toLowerCase() === t);
+	return hit ? hit.dots : null;
+}
+
 export interface ResumeData {
 	personal: PersonalInfo;
 	experience: ExperienceItem[];
 	education: EducationItem[];
 	skills: string[];
+	/** Per-skill level (1–5), keyed by skill name. Missing = default level. */
+	skillLevels?: Record<string, number>;
 	projects: ProjectItem[];
 	certifications: CertificationItem[];
 	/** User-added extra sections (certifications, languages, links, custom…). */

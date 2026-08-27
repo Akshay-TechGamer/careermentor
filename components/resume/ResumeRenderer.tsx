@@ -1,9 +1,11 @@
 import type { CSSProperties, ReactNode } from 'react';
 import {
 	FONT_FAMILY,
+	languageDots,
 	marginPad,
 	resolveSectionOrder,
 	SECTION_META,
+	skillLevelFor,
 	spacingGap,
 	SPACING_GAP,
 	textScale,
@@ -124,17 +126,28 @@ function EducationBlock({ data }: { data: ResumeData }) {
 	);
 }
 
+/** Whether skill level bars/dots are shown (user-controlled, default on). */
+function showLevels(data: ResumeData): boolean {
+	return data.style?.showSkillLevels !== false;
+}
+
 /* Two-column skill grid with accent underline bars (resume.io "Stockholm" look). */
 function SkillGrid({ data, accent }: { data: ResumeData; accent: string }) {
 	if (data.skills.length === 0) return null;
+	const levels = showLevels(data);
 	return (
 		<div className="grid grid-cols-2 gap-x-8 gap-y-2">
 			{data.skills.map((s, i) => (
 				<div key={i}>
 					<div className="text-[calc(11px_*_var(--rz-fs))]">{s}</div>
-					<div className="mt-1 h-[3px] bg-black/10">
-						<div className="h-[3px]" style={{ width: `${74 + (i % 3) * 8}%`, background: accent }} />
-					</div>
+					{levels && (
+						<div className="mt-1 h-[3px] bg-black/10">
+							<div
+								className="h-[3px]"
+								style={{ width: `${skillLevelFor(data, s) * 20}%`, background: accent }}
+							/>
+						</div>
+					)}
 				</div>
 			))}
 		</div>
@@ -144,43 +157,70 @@ function SkillGrid({ data, accent }: { data: ResumeData; accent: string }) {
 /* Stacked skill bars for narrow sidebars. `light` renders white-on-accent. */
 function SkillBars({ data, accent, light }: { data: ResumeData; accent: string; light?: boolean }) {
 	if (data.skills.length === 0) return null;
+	const levels = showLevels(data);
 	return (
 		<div className="space-y-1.5">
 			{data.skills.map((s, i) => (
 				<div key={i}>
 					<div className={`text-[calc(10.5px_*_var(--rz-fs))] mb-0.5 ${light ? 'opacity-95' : ''}`}>{s}</div>
-					<div className={`h-[3px] ${light ? 'bg-white/25' : 'bg-black/10'}`}>
-						<div
-							className="h-[3px]"
-							style={{ width: `${74 + (i % 3) * 8}%`, background: light ? '#fff' : accent }}
-						/>
-					</div>
+					{levels && (
+						<div className={`h-[3px] ${light ? 'bg-white/25' : 'bg-black/10'}`}>
+							<div
+								className="h-[3px]"
+								style={{ width: `${skillLevelFor(data, s) * 20}%`, background: light ? '#fff' : accent }}
+							/>
+						</div>
+					)}
 				</div>
 			))}
 		</div>
 	);
 }
 
-/* Dot-rated skills (resume.io "Milan" look). Decorative rating, deterministic. */
+/* Dot-rated skills (resume.io "Milan" look). Filled dots = the user's level. */
 function SkillDots({ data, accent }: { data: ResumeData; accent: string }) {
 	if (data.skills.length === 0) return null;
+	const levels = showLevels(data);
 	return (
 		<div className="space-y-1.5">
 			{data.skills.map((s, i) => (
 				<div key={i}>
 					<div className="text-[calc(10.5px_*_var(--rz-fs))] mb-0.5">{s}</div>
-					<div className="flex gap-1">
-						{Array.from({ length: 5 }).map((_, d) => (
-							<span
-								key={d}
-								className="w-[7px] h-[7px] rounded-full"
-								style={{ background: d < 4 + (i % 2) ? accent : 'rgba(0,0,0,0.15)' }}
-							/>
-						))}
-					</div>
+					{levels && <DotRow filled={skillLevelFor(data, s)} accent={accent} />}
 				</div>
 			))}
 		</div>
+	);
+}
+
+function DotRow({ filled, accent }: { filled: number; accent: string }) {
+	return (
+		<div className="flex gap-1">
+			{Array.from({ length: 5 }).map((_, d) => (
+				<span
+					key={d}
+					className="w-[7px] h-[7px] rounded-full"
+					style={{ background: d < filled ? accent : 'rgba(0,0,0,0.15)' }}
+				/>
+			))}
+		</div>
+	);
+}
+
+/* Inline proficiency dots after a recognised language level (e.g. "Fluent"). */
+function LangDots({ text, accent }: { text: string; accent: string }) {
+	const filled = languageDots(text);
+	if (filled == null) return null;
+	return (
+		<span className="inline-flex gap-[3px] ml-1.5">
+			{Array.from({ length: 5 }).map((_, d) => (
+				<span
+					key={d}
+					className="w-[6px] h-[6px] rounded-full inline-block"
+					style={{ background: d < filled ? accent : 'rgba(0,0,0,0.15)' }}
+				/>
+			))}
+		</span>
 	);
 }
 
@@ -209,6 +249,7 @@ function CustomBlocks({ data, accent }: { data: ResumeData; accent: string }) {
 												{isLink ? '' : ')'}
 											</span>
 										)}
+										{sec.type === 'languages' && it.secondary && <LangDots text={it.secondary} accent={accent} />}
 										{i < items.length - 1 && <span className="opacity-40">{'   ·   '}</span>}
 									</span>
 								))}
@@ -219,8 +260,9 @@ function CustomBlocks({ data, accent }: { data: ResumeData; accent: string }) {
 									<div key={it.id} className="text-[calc(11.5px_*_var(--rz-fs))] flex justify-between gap-3">
 										<span className="font-semibold">{it.primary}</span>
 										{it.secondary && (
-											<span className="whitespace-nowrap" style={secStyle}>
+											<span className="whitespace-nowrap flex items-center" style={secStyle}>
 												{it.secondary}
+												{sec.type === 'languages' && <LangDots text={it.secondary} accent={accent} />}
 											</span>
 										)}
 									</div>
@@ -232,6 +274,7 @@ function CustomBlocks({ data, accent }: { data: ResumeData; accent: string }) {
 									<li key={it.id} className="text-[calc(11px_*_var(--rz-fs))]">
 										<span className="font-semibold">{it.primary}</span>
 										{it.secondary && <span style={secStyle}> — {it.secondary}</span>}
+										{sec.type === 'languages' && it.secondary && <LangDots text={it.secondary} accent={accent} />}
 									</li>
 								))}
 							</ul>
@@ -241,8 +284,9 @@ function CustomBlocks({ data, accent }: { data: ResumeData; accent: string }) {
 									<div key={it.id}>
 										<div className="text-[calc(11.5px_*_var(--rz-fs))] font-semibold">{it.primary}</div>
 										{it.secondary && (
-											<div className="text-[calc(10.5px_*_var(--rz-fs))]" style={secStyle}>
+											<div className="text-[calc(10.5px_*_var(--rz-fs))] flex items-center" style={secStyle}>
 												{it.secondary}
+												{sec.type === 'languages' && <LangDots text={it.secondary} accent={accent} />}
 											</div>
 										)}
 									</div>

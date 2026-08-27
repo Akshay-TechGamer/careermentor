@@ -6,9 +6,12 @@ import {
 	ACCENT_PRESETS,
 	CORE_SECTION_LABELS,
 	CUSTOM_LAYOUTS,
+	LANGUAGE_LEVELS,
 	resolveSectionOrder,
 	SECTION_META,
 	SECTION_ORDER,
+	SKILL_LEVEL_MAX,
+	skillLevelFor,
 	type CoreSectionKey,
 	type CustomLayout,
 	type CustomSection,
@@ -293,22 +296,50 @@ export function EducationSection({ data, update }: { data: ResumeData; update: U
 
 /* ---------------- Skills ---------------- */
 export function SkillsSection({ data, update }: { data: ResumeData; update: Update }) {
+	const setLevel = (name: string, level: number) =>
+		update((d) => ({ ...d, skillLevels: { ...d.skillLevels, [name]: level } }));
+	const remove = (i: number, name: string) =>
+		update((d) => {
+			const levels = { ...d.skillLevels };
+			delete levels[name];
+			return { ...d, skills: d.skills.filter((_, idx) => idx !== i), skillLevels: levels };
+		});
+
 	return (
 		<div>
-			<div className="flex flex-wrap gap-2">
-				{data.skills.map((s, i) => (
-					<span key={i} className="chip chip-on cursor-default">
-						{s}
-						<button
-							className="ml-1.5"
-							onClick={() => update((d) => ({ ...d, skills: d.skills.filter((_, idx) => idx !== i) }))}
-							aria-label={`Remove ${s}`}
-						>
-							×
-						</button>
-					</span>
-				))}
-			</div>
+			{data.skills.length > 0 && (
+				<div className="space-y-1.5">
+					{data.skills.map((s, i) => {
+						const level = skillLevelFor(data, s);
+						return (
+							<div key={i} className="flex items-center gap-3 rounded-lg bg-surface-low px-3 py-2">
+								<span className="flex-1 min-w-0 truncate text-sm font-medium">{s}</span>
+								<span className="flex items-center gap-1" role="group" aria-label={`${s} level`}>
+									{Array.from({ length: SKILL_LEVEL_MAX }).map((_, d) => (
+										<button
+											key={d}
+											type="button"
+											className={`w-3.5 h-3.5 rounded-full transition ${
+												d < level ? 'bg-primary' : 'bg-outline-variant hover:bg-outline'
+											}`}
+											onClick={() => setLevel(s, d + 1)}
+											aria-label={`Set ${s} to level ${d + 1}`}
+											title={`Level ${d + 1}/${SKILL_LEVEL_MAX}`}
+										/>
+									))}
+								</span>
+								<button
+									className="btn-ghost p-1 rounded text-danger shrink-0"
+									onClick={() => remove(i, s)}
+									aria-label={`Remove ${s}`}
+								>
+									<Trash2 className="w-4 h-4" />
+								</button>
+							</div>
+						);
+					})}
+				</div>
+			)}
 			<input
 				className="input mt-3"
 				placeholder="Type a skill and press Enter"
@@ -323,6 +354,10 @@ export function SkillsSection({ data, update }: { data: ResumeData; update: Upda
 					}
 				}}
 			/>
+			<p className="mt-2 text-xs text-on-surface-variant">
+				Click the dots to set each skill&apos;s level — it drives the bars on your resume. You can
+				hide levels entirely in Design &amp; Customize.
+			</p>
 		</div>
 	);
 }
@@ -501,7 +536,30 @@ export function CustomizeSection({ data, update }: { data: ResumeData; update: U
 				</div>
 			</div>
 
-			{(style.accent || style.layout || style.font || style.spacing || style.margin || style.textSize) && (
+			<div>
+				<span className="field-label">Skill level bars</span>
+				<div className="flex flex-wrap gap-2">
+					<button
+						type="button"
+						className={`chip ${style.showSkillLevels !== false ? 'chip-on' : ''}`}
+						onClick={() => setStyle({ showSkillLevels: true })}
+					>
+						Show
+					</button>
+					<button
+						type="button"
+						className={`chip ${style.showSkillLevels === false ? 'chip-on' : ''}`}
+						onClick={() => setStyle({ showSkillLevels: false })}
+					>
+						Hide
+					</button>
+				</div>
+				<p className="mt-1 text-xs text-on-surface-variant">
+					Hide for a plain, ATS-style skill list without ratings.
+				</p>
+			</div>
+
+			{(style.accent || style.layout || style.font || style.spacing || style.margin || style.textSize || style.showSkillLevels != null) && (
 				<button
 					type="button"
 					className="btn btn-ghost text-sm"
@@ -678,7 +736,25 @@ export function CustomSectionsEditor({ data, update }: { data: ResumeData; updat
 							{sec.items.map((it, ii) => (
 								<div key={it.id} className="grid gap-2 sm:grid-cols-[1fr_1fr_auto] items-center">
 									<input className="input" placeholder={meta.primary} value={it.primary} onChange={(e) => setItem(si, ii, { primary: e.target.value })} />
-									<input className="input" placeholder={meta.secondary} value={it.secondary} onChange={(e) => setItem(si, ii, { secondary: e.target.value })} />
+									{sec.type === 'languages' ? (
+										<select
+											className="input"
+											value={it.secondary}
+											onChange={(e) => setItem(si, ii, { secondary: e.target.value })}
+										>
+											<option value="">Proficiency…</option>
+											{LANGUAGE_LEVELS.map((l) => (
+												<option key={l.label} value={l.label}>
+													{l.label}
+												</option>
+											))}
+											{it.secondary && !LANGUAGE_LEVELS.some((l) => l.label === it.secondary) && (
+												<option value={it.secondary}>{it.secondary}</option>
+											)}
+										</select>
+									) : (
+										<input className="input" placeholder={meta.secondary} value={it.secondary} onChange={(e) => setItem(si, ii, { secondary: e.target.value })} />
+									)}
 									<button className="btn-ghost p-2 rounded text-danger justify-self-start" onClick={() => removeItem(si, ii)} aria-label="Remove item">
 										<Trash2 className="w-4 h-4" />
 									</button>
