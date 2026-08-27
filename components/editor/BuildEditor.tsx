@@ -26,6 +26,23 @@ import { ResumePaper } from '@/components/resume/ResumePaper';
 
 type SaveState = 'idle' | 'saving' | 'saved';
 
+/** The public site URL — share links must always point here. */
+const PUBLIC_SITE_URL = 'https://careermentor-smoky.vercel.app';
+
+/**
+ * Origin for share links. Vercel per-deployment URLs (careermentor-xxxx-….vercel.app)
+ * sit behind Vercel's login wall, so links built from them don't open for
+ * anyone else. Keep localhost for local testing; map everything else to the
+ * public alias.
+ */
+function shareOrigin(): string {
+	const { hostname, origin } = window.location;
+	if (hostname === 'localhost' || hostname === '127.0.0.1') {
+		return origin;
+	}
+	return PUBLIC_SITE_URL;
+}
+
 export function BuildEditor() {
 	const params = useSearchParams();
 	const [draft, setDraft] = useState<Draft | null>(null);
@@ -166,7 +183,7 @@ export function BuildEditor() {
 				});
 			}
 			await updateResume(rowId, { is_public: true });
-			const url = `${window.location.origin}/r/${rowId}`;
+			const url = `${shareOrigin()}/r/${rowId}`;
 			setShareUrl(url);
 			try {
 				await navigator.clipboard.writeText(url);
