@@ -285,6 +285,115 @@ function keywordMatch(data: ResumeData, jobDescription: string): KeywordMatch {
 	return { percent, matched, missing };
 }
 
+function chip(status: IssueStatus, ok: string, warn: string, bad: string): string {
+	return status === 'perfect' ? ok : status === 'warning' ? warn : bad;
+}
+
+/** Analyzes raw resume text (from an uploaded file) with the same heuristics. */
+export function analyzeText(raw: string): AnalysisResult {
+	const text = raw.replace(/\r/g, '');
+	const lower = text.toLowerCase();
+	const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
+	const bulletLines = lines.filter((l) => l.length > 25);
+	const words = lower.split(/\s+/).filter(Boolean);
+
+	// Impact verbs
+	const impactFixes: Fix[] = [];
+	for (const l of bulletLines) {
+		for (const w of WEAK_OPENERS) {
+			if (w.re.test(l)) {
+				impactFixes.push({ before: l, after: l.replace(w.re, `${w.verb} `).replace(/\s+/g, ' ').trim() });
+				break;
+			}
+		}
+	}
+	const impactStatus: IssueStatus = impactFixes.length >= 3 ? 'critical' : impactFixes.length >= 1 ? 'warning' : 'perfect';
+
+	// Quantified results
+	const quantLines = bulletLines.filter((l) => /\d/.test(l)).length;
+	const quantRatio = bulletLines.length ? quantLines / bulletLines.length : 0;
+	const quantStatus: IssueStatus = quantRatio < 0.3 ? 'critical' : quantRatio < 0.5 ? 'warning' : 'perfect';
+
+	// Sections + contact
+	const hasEmail = /[\w.+-]+@[\w-]+\.[\w.-]+/.test(text);
+	const hasPhone = /(\+?\d[\d\s().-]{7,}\d)/.test(text);
+	const sections = ['experience', 'education', 'skill'].filter((s) => lower.includes(s));
+	const missing: string[] = [];
+	if (!hasEmail) missing.push('email');
+	if (!hasPhone) missing.push('phone');
+	if (!lower.includes('experience')) missing.push('experience');
+	if (!lower.includes('education')) missing.push('education');
+	if (!lower.includes('skill')) missing.push('skills');
+	const completeStatus: IssueStatus = !hasEmail || sections.length < 2 ? 'critical' : missing.length ? 'warning' : 'perfect';
+
+	// Grammar / spelling
+	const grammarFixes: Fix[] = [];
+	for (const l of lines) {
+		const bad = Object.keys(MISSPELLINGS).find((m) => new RegExp(`\\b${m}\\b`, 'i').test(l));
+		if (bad) grammarFixes.push({ before: l, after: l.replace(new RegExp(`\\b${bad}\\b`, 'i'), MISSPELLINGS[bad]) });
+	}
+	const grammarStatus: IssueStatus = grammarFixes.length >= 3 ? 'critical' : grammarFixes.length >= 1 ? 'warning' : 'perfect';
+
+	// Length
+	const lengthStatus: IssueStatus = words.length < 150 ? 'critical' : words.length > 900 ? 'warning' : 'perfect';
+
+	const breakdown: BreakdownItem[] = [
+		{
+			key: 'impact',
+			title: 'Impact Verbs',
+			status: impactStatus,
+			chip: chip(impactStatus, 'Strong', 'Warning', 'Needs Work'),
+			message: impactFixes.length === 0 ? 'Your lines lead with strong action verbs.' : `${impactFixes.length} line(s) start with weak openers like “responsible for” or “helped”. Use results-driven verbs.`,
+			fixes: impactFixes.slice(0, 5),
+		},
+		{
+			key: 'quantified',
+			title: 'Quantified Results',
+			status: quantStatus,
+			chip: chip(quantStatus, 'Strong', 'Warning', 'Needs Work'),
+			message: `${quantLines} of ${bulletLines.length || 0} detailed lines include numbers. Aim for at least half with measurable impact.`,
+			fixes: [],
+		},
+		{
+			key: 'completeness',
+			title: 'Essential Sections',
+			status: completeStatus,
+			chip: chip(completeStatus, 'Complete', 'Warning', 'Needs Work'),
+			message: missing.length === 0 ? 'All essential sections and contact details detected.' : `Not detected: ${missing.join(', ')}. ATS parsers look for these.`,
+			fixes: [],
+		},
+		{
+			key: 'grammar',
+			title: 'Grammar & Spelling',
+			status: grammarStatus,
+			chip: chip(grammarStatus, 'Perfect', 'Warning', 'Needs Work'),
+			message: grammarFixes.length === 0 ? 'No obvious spelling issues found.' : `Found ${grammarFixes.length} likely spelling issue(s).`,
+			fixes: grammarFixes.slice(0, 5),
+		},
+		{
+			key: 'length',
+			title: 'Length & Depth',
+			status: lengthStatus,
+			chip: chip(lengthStatus, 'Good', 'Warning', 'Too short'),
+			message: `About ${words.length} words. ${words.length < 150 ? 'Add more detail about your impact.' : words.length > 900 ? 'Consider trimming to keep it focused.' : 'Length is in a healthy range.'}`,
+			fixes: [],
+		},
+	];
+
+	const weights: Record<string, number> = { impact: 25, quantified: 20, completeness: 25, grammar: 20, length: 10 };
+	const statusScore: Record<IssueStatus, number> = { perfect: 1, warning: 0.55, critical: 0.15 };
+	let score = 0;
+	for (const item of breakdown) score += (weights[item.key] ?? 0) * statusScore[item.status];
+
+	return {
+		score: Math.max(0, Math.min(100, Math.round(score))),
+		critical: breakdown.filter((i) => i.status === 'critical').length,
+		warnings: breakdown.filter((i) => i.status === 'warning').length,
+		breakdown,
+		keyword: null,
+	};
+}
+
 export function analyzeResume(data: ResumeData, jobDescription?: string): AnalysisResult {
 	const items = [
 		impactVerbs(data),

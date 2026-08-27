@@ -1,17 +1,33 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { Download, ArrowLeft } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Download, ArrowLeft, Loader2, Printer } from 'lucide-react';
 import { loadDraft, type Draft } from '@/lib/data/draftStore';
 import { ResumeRenderer } from '@/components/resume/ResumeRenderer';
+import { downloadResumePdf } from '@/lib/pdf/downloadPdf';
 
 export default function PreviewPage() {
 	const [draft, setDraft] = useState<Draft | null>(null);
+	const [busy, setBusy] = useState(false);
+	const sheetRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
 		setDraft(loadDraft());
 	}, []);
+
+	const onDownload = async () => {
+		if (!sheetRef.current || !draft) return;
+		setBusy(true);
+		try {
+			await downloadResumePdf(sheetRef.current, draft.title || 'resume');
+		} catch {
+			// Fall back to the print dialog if rasterization fails.
+			window.print();
+		} finally {
+			setBusy(false);
+		}
+	};
 
 	if (!draft) {
 		return (
@@ -26,24 +42,26 @@ export default function PreviewPage() {
 
 	return (
 		<div>
-			{/* Toolbar */}
 			<div className="no-print sticky top-16 z-30 bg-surface/90 backdrop-blur border-b border-outline-variant/50">
-				<div className="mx-auto max-w-4xl px-4 py-3 flex items-center justify-between">
+				<div className="mx-auto max-w-4xl px-4 py-3 flex items-center justify-between gap-3">
 					<Link href="/build" className="btn btn-ghost">
 						<ArrowLeft className="w-4 h-4" /> Back
 					</Link>
-					<div className="text-sm text-on-surface-variant hidden sm:block">
-						Tip: choose “Save as PDF” in the print dialog.
+					<div className="flex items-center gap-2">
+						<button className="btn btn-outline" onClick={() => window.print()}>
+							<Printer className="w-4 h-4" /> <span className="hidden sm:inline">Print</span>
+						</button>
+						<button className="btn btn-primary" onClick={onDownload} disabled={busy}>
+							{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+							Download PDF
+						</button>
 					</div>
-					<button className="btn btn-primary" onClick={() => window.print()}>
-						<Download className="w-4 h-4" /> Download PDF
-					</button>
 				</div>
 			</div>
 
-			{/* A4 sheet */}
 			<div className="py-8 px-4 flex justify-center bg-surface-dim/40">
 				<div
+					ref={sheetRef}
 					className="print-sheet bg-white shadow-[var(--shadow-card)]"
 					style={{ width: 794, minHeight: 1123 }}
 				>

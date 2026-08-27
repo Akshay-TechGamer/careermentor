@@ -179,6 +179,14 @@ function TwoColumn({ data, template }: { data: ResumeData; template: Template })
 	return (
 		<div className="bg-white text-[#111c2d] w-full h-full flex font-[family-name:var(--font-body)]">
 			<aside className="w-1/3 p-5 text-white" style={{ background: accent }}>
+				{p.photo && (
+					// eslint-disable-next-line @next/next/no-img-element
+					<img
+						src={p.photo}
+						alt=""
+						className="w-20 h-20 rounded-full object-cover mb-3 border-2 border-white/40"
+					/>
+				)}
 				<h1 className="text-[19px] font-extrabold leading-tight">{p.fullName || 'Your Name'}</h1>
 				<div className="text-[12px] opacity-90 font-semibold">{p.title}</div>
 

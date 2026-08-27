@@ -27,12 +27,83 @@ function move<T>(arr: T[], from: number, to: number): T[] {
 }
 
 /* ---------------- Personal ---------------- */
-export function PersonalSection({ data, update }: { data: ResumeData; update: Update }) {
+async function fileToAvatar(file: File): Promise<string> {
+	const dataUrl = await new Promise<string>((resolve, reject) => {
+		const r = new FileReader();
+		r.onload = () => resolve(r.result as string);
+		r.onerror = reject;
+		r.readAsDataURL(file);
+	});
+	// Downscale to a small square JPEG so it stays light in storage.
+	return new Promise<string>((resolve) => {
+		const img = new Image();
+		img.onload = () => {
+			const size = 400;
+			const canvas = document.createElement('canvas');
+			canvas.width = size;
+			canvas.height = size;
+			const ctx = canvas.getContext('2d');
+			if (!ctx) {
+				resolve(dataUrl);
+				return;
+			}
+			const min = Math.min(img.width, img.height);
+			const sx = (img.width - min) / 2;
+			const sy = (img.height - min) / 2;
+			ctx.drawImage(img, sx, sy, min, min, 0, 0, size, size);
+			resolve(canvas.toDataURL('image/jpeg', 0.82));
+		};
+		img.onerror = () => resolve(dataUrl);
+		img.src = dataUrl;
+	});
+}
+
+export function PersonalSection({
+	data,
+	update,
+	showPhoto = false,
+}: {
+	data: ResumeData;
+	update: Update;
+	showPhoto?: boolean;
+}) {
 	const p = data.personal;
 	const set = (patch: Partial<typeof p>) =>
 		update((d) => ({ ...d, personal: { ...d.personal, ...patch } }));
 	return (
 		<div className="grid gap-4 sm:grid-cols-2">
+			{showPhoto && (
+				<div className="sm:col-span-2 flex items-center gap-4">
+					<div className="w-16 h-16 rounded-full overflow-hidden bg-surface-container flex items-center justify-center shrink-0">
+						{p.photo ? (
+							// eslint-disable-next-line @next/next/no-img-element
+							<img src={p.photo} alt="Headshot" className="w-full h-full object-cover" />
+						) : (
+							<span className="label-caps text-outline">Photo</span>
+						)}
+					</div>
+					<div className="flex flex-col gap-1.5">
+						<label className="btn btn-outline text-sm cursor-pointer">
+							{p.photo ? 'Change photo' : 'Upload photo'}
+							<input
+								type="file"
+								accept="image/*"
+								className="hidden"
+								onChange={async (e) => {
+									const f = e.target.files?.[0];
+									if (f) set({ photo: await fileToAvatar(f) });
+								}}
+							/>
+						</label>
+						{p.photo && (
+							<button className="btn-ghost text-danger text-sm text-left px-1" onClick={() => set({ photo: undefined })}>
+								Remove photo
+							</button>
+						)}
+						<span className="text-xs text-on-surface-variant">Shown on photo templates.</span>
+					</div>
+				</div>
+			)}
 			<Labeled label="Full Name">
 				<input className="input" value={p.fullName} onChange={(e) => set({ fullName: e.target.value })} />
 			</Labeled>

@@ -13,6 +13,8 @@ export interface PersonalInfo {
 	location: string;
 	links: ContactLink[];
 	summary: string;
+	/** Optional headshot as a data URL — shown only by photo templates. */
+	photo?: string;
 }
 
 export interface ExperienceItem {

@@ -20,6 +20,8 @@ export interface Template {
 	layout: TemplateLayout;
 	accent: string;
 	headingFont: 'display' | 'body';
+	/** Two-column templates show a headshot; single-column ones don't. */
+	hasPhoto: boolean;
 }
 
 export const CATEGORIES: TemplateCategory[] = [
@@ -31,7 +33,7 @@ export const CATEGORIES: TemplateCategory[] = [
 	'Technical',
 ];
 
-export const TEMPLATES: Template[] = [
+const RAW: Omit<Template, 'hasPhoto'>[] = [
 	{
 		slug: 'the-professional',
 		name: 'The Professional',
@@ -154,6 +156,42 @@ export const TEMPLATES: Template[] = [
 	},
 ];
 
+export const TEMPLATES: Template[] = RAW.map((t) => ({
+	...t,
+	hasPhoto: t.layout === 'twoColumn',
+}));
+
 export function getTemplate(slug: string): Template {
 	return TEMPLATES.find((t) => t.slug === slug) ?? TEMPLATES[0];
+}
+
+/**
+ * Recommends a template slug from resume text/keywords — used by the analyzer
+ * and the "Recommended for you" surface.
+ */
+export function recommendTemplate(text: string): string {
+	const t = text.toLowerCase();
+	const has = (...words: string[]) => words.some((w) => t.includes(w));
+	if (has('professor', 'phd', 'ph.d', 'research', 'publication', 'dissertation', 'academic')) {
+		return 'the-professor';
+	}
+	if (has('teacher', 'lecturer', 'curriculum', 'classroom', 'education ', 'pedagog')) {
+		return 'the-educator';
+	}
+	if (has('ceo', 'cto', 'cfo', 'vp ', 'vice president', 'director', 'head of', 'executive', 'p&l')) {
+		return 'the-director';
+	}
+	if (has('developer', 'engineer', 'software', 'programmer', 'devops', 'full stack', 'backend', 'frontend')) {
+		return 'the-developer';
+	}
+	if (has('designer', 'ux', 'ui', 'creative', 'brand', 'illustrat', 'figma', 'portfolio')) {
+		return 'the-innovator';
+	}
+	if (has('intern', 'student', 'graduate', 'fresher', 'coursework', 'gpa', 'b.tech', 'bachelor')) {
+		return 'the-starter';
+	}
+	if (has('manager', 'lead', 'supervisor', 'team of')) {
+		return 'the-manager';
+	}
+	return 'the-professional';
 }

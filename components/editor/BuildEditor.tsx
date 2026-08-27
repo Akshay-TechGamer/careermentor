@@ -186,7 +186,7 @@ export function BuildEditor() {
 				{/* Editor */}
 				<div className="space-y-4">
 					<CollapsibleCard title="Personal Info">
-						<PersonalSection data={draft.data} update={update} />
+						<PersonalSection data={draft.data} update={update} showPhoto={template.hasPhoto} />
 					</CollapsibleCard>
 					<CollapsibleCard title="Experience">
 						<ExperienceSection data={draft.data} update={update} />
