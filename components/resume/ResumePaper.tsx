@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type RefObject } from 'react';
 import type { ResumeData } from '@/lib/types';
 import { ResumeRenderer } from './ResumeRenderer';
 
@@ -14,13 +14,17 @@ export function ResumePaper({
 	data,
 	templateSlug,
 	className = '',
+	sheetRef,
 }: {
 	data: ResumeData;
 	templateSlug: string;
 	className?: string;
+	/** The true-size (794px) sheet — pass this when you need to export it. */
+	sheetRef?: RefObject<HTMLDivElement | null>;
 }) {
 	const outerRef = useRef<HTMLDivElement>(null);
-	const innerRef = useRef<HTMLDivElement>(null);
+	const localRef = useRef<HTMLDivElement>(null);
+	const innerRef = sheetRef ?? localRef;
 	const [scale, setScale] = useState(0.5);
 	const [height, setHeight] = useState(A4_H);
 
@@ -29,7 +33,7 @@ export function ResumePaper({
 		const inner = innerRef.current;
 		if (!outer || !inner) return;
 		const update = () => {
-			setScale(outer.clientWidth / A4_W);
+			setScale(Math.min(1, outer.clientWidth / A4_W));
 			setHeight(Math.max(inner.offsetHeight, A4_H));
 		};
 		const ro = new ResizeObserver(update);
@@ -43,7 +47,7 @@ export function ResumePaper({
 		<div ref={outerRef} className={`w-full ${className}`} style={{ height: height * scale }}>
 			<div
 				ref={innerRef}
-				className="origin-top-left shadow-[var(--shadow-card)] bg-white"
+				className="print-sheet origin-top-left shadow-[var(--shadow-card)] bg-white"
 				style={{ width: A4_W, transform: `scale(${scale})` }}
 			>
 				<ResumeRenderer data={data} templateSlug={templateSlug} />

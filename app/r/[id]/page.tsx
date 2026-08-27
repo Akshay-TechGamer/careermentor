@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Download, Loader2 } from 'lucide-react';
 import { getResume } from '@/lib/data/resumesRepo';
 import type { ResumeRow } from '@/lib/types';
-import { ResumeRenderer } from '@/components/resume/ResumeRenderer';
+import { ResumePaper } from '@/components/resume/ResumePaper';
 import { downloadResumePdf } from '@/lib/pdf/downloadPdf';
 
 export default function PublicResumePage() {
@@ -63,9 +63,9 @@ export default function PublicResumePage() {
 				</div>
 			</div>
 
-			<div className="py-8 px-4 flex justify-center bg-surface-dim/40">
-				<div ref={sheetRef} className="bg-white shadow-[var(--shadow-card)]" style={{ width: 794 }}>
-					<ResumeRenderer data={row.data} templateSlug={row.template_slug} />
+			<div className="py-8 px-4 bg-surface-dim/40">
+				<div className="mx-auto w-full max-w-[794px]">
+					<ResumePaper data={row.data} templateSlug={row.template_slug} sheetRef={sheetRef} />
 				</div>
 			</div>
 

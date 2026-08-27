@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { Download, ArrowLeft, Loader2, FileType2 } from 'lucide-react';
 import { loadDraft, type Draft } from '@/lib/data/draftStore';
-import { ResumeRenderer } from '@/components/resume/ResumeRenderer';
+import { ResumePaper } from '@/components/resume/ResumePaper';
 import { downloadResumePdf } from '@/lib/pdf/downloadPdf';
 import { downloadDocx } from '@/lib/docx/downloadDocx';
 
@@ -74,13 +74,9 @@ export default function PreviewPage() {
 				</div>
 			</div>
 
-			<div className="py-8 px-4 flex justify-center bg-surface-dim/40">
-				<div
-					ref={sheetRef}
-					className="print-sheet bg-white shadow-[var(--shadow-card)]"
-					style={{ width: 794 }}
-				>
-					<ResumeRenderer data={draft.data} templateSlug={draft.templateSlug} />
+			<div className="py-8 px-4 bg-surface-dim/40">
+				<div className="mx-auto w-full max-w-[794px]">
+					<ResumePaper data={draft.data} templateSlug={draft.templateSlug} sheetRef={sheetRef} />
 				</div>
 			</div>
 		</div>

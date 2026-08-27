@@ -43,6 +43,7 @@ export async function downloadResumePdf(
 	filename: string,
 ): Promise<void> {
 	let plan: { pages: number; restore: () => void } | null = null;
+	let transform: string | null = null;
 	try {
 		const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
 			import('html2canvas-pro'),
@@ -51,6 +52,12 @@ export async function downloadResumePdf(
 		if (document.fonts && document.fonts.ready) {
 			await document.fonts.ready;
 		}
+
+		// On phones the sheet is displayed scaled down to fit. Measure and capture
+		// it at its true A4 width instead, or the export inherits the shrunken
+		// on-screen layout.
+		transform = element.style.transform;
+		element.style.transform = 'none';
 
 		// Move anything that would straddle a page boundary onto the next page,
 		// then round the sheet up to whole pages.
@@ -105,6 +112,9 @@ export async function downloadResumePdf(
 	} finally {
 		if (plan) {
 			plan.restore();
+		}
+		if (transform !== null) {
+			element.style.transform = transform;
 		}
 	}
 }
