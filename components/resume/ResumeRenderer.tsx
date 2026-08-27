@@ -76,6 +76,8 @@ export function ResumeRenderer({
 			<Blobs data={data} accent={accent} fontFamily={fontFamily} />
 		) : layout === 'monogramBand' ? (
 			<MonogramBand data={data} accent={accent} fontFamily={fontFamily} />
+		) : layout === 'europass' ? (
+			<Europass data={data} accent={accent} fontFamily={fontFamily} />
 		) : layout === 'boldBars' ? (
 			<BoldBars data={data} accent={accent} fontFamily={fontFamily} />
 		) : layout === 'kicker' ? (
@@ -2191,6 +2193,97 @@ function BoldBars({ data, accent, fontFamily }: { data: ResumeData; accent: stri
 					{orderedCoreBlocks(data, accent, ['summary', 'experience', 'education', 'projects'])}
 				</main>
 			</div>
+		</div>
+	);
+}
+
+/* London (software engineer)-style: Europass serif — centered name, thick rule,
+   hanging left section labels, full-width hairline rules, plain skills rows */
+function Europass({ data, accent, fontFamily }: { data: ResumeData; accent: string; fontFamily: string }) {
+	const p = data.personal;
+	const contact = [p.location, p.phone, p.email, ...p.links.map((l) => l.url)].filter(Boolean);
+	const Row = ({ label, children }: { label: string; children: ReactNode }) => (
+		<div className="border-t border-black/25 pt-2.5" style={{ marginTop: 'var(--rz-gap, 16px)' }}>
+			<div className="flex gap-5">
+				<div className="w-24 shrink-0 text-[calc(9.5px_*_var(--rz-fs))] font-bold uppercase tracking-[0.2em] pt-0.5">
+					{label}
+				</div>
+				<div className="flex-1 min-w-0">{children}</div>
+			</div>
+		</div>
+	);
+	return (
+		<div className="bg-white text-[#16181d] w-full h-full" style={{ fontFamily, padding: 'var(--rz-pad, 32px)' }}>
+			<header className="text-center">
+				<h1 className="text-[calc(18px_*_var(--rz-fs))] font-bold leading-tight">
+					{p.fullName || 'Your Name'}
+					{p.title ? `, ${p.title}` : ''}
+				</h1>
+				{contact.length > 0 && (
+					<div className="text-[calc(10px_*_var(--rz-fs))] opacity-80 mt-1">{contact.join('  ·  ')}</div>
+				)}
+			</header>
+			<div className="mt-3 border-t-2" style={{ borderColor: accent }} />
+			{p.summary && (
+				<Row label="Profile">
+					<p className="text-[calc(11px_*_var(--rz-fs))] leading-snug">{p.summary}</p>
+				</Row>
+			)}
+			{data.experience.length > 0 && (
+				<Row label="Experience">
+					{data.experience.map((e) => (
+						<div key={e.id} className="mb-3">
+							<div className="flex justify-between items-baseline gap-2">
+								<span className="font-bold text-[calc(12px_*_var(--rz-fs))]">
+									{e.role || 'Role'}
+									{e.company && <span className="font-normal"> — {e.company}</span>}
+								</span>
+								<span className="text-[calc(9.5px_*_var(--rz-fs))] opacity-70 whitespace-nowrap">
+									{[e.start, e.current ? 'Present' : e.end].filter(Boolean).join(' – ')}
+								</span>
+							</div>
+							<ul className="mt-1 list-disc pl-4 space-y-0.5">
+								{e.bullets.filter(Boolean).map((b, i) => (
+									<li key={i} className="text-[calc(10.5px_*_var(--rz-fs))] leading-snug">
+										{b}
+									</li>
+								))}
+							</ul>
+						</div>
+					))}
+				</Row>
+			)}
+			{data.education.length > 0 && (
+				<Row label="Education">
+					<EducationBlock data={data} />
+				</Row>
+			)}
+			{filledProjects(data).length > 0 && (
+				<Row label="Projects">
+					<ProjectsBlock data={data} accent={accent} />
+				</Row>
+			)}
+			{data.skills.length > 0 && (
+				<Row label="Skills">
+					<p className="text-[calc(10.5px_*_var(--rz-fs))] leading-relaxed">{data.skills.join(', ')}</p>
+				</Row>
+			)}
+			{(data.sections ?? [])
+				.filter((s) => s.items.some((it) => it.primary || it.secondary))
+				.map((sec) => (
+					<Row key={sec.id} label={sec.heading}>
+						<div className="space-y-0.5">
+							{sec.items
+								.filter((it) => it.primary || it.secondary)
+								.map((it) => (
+									<div key={it.id} className="text-[calc(10.5px_*_var(--rz-fs))] flex justify-between gap-3">
+										<span className="font-semibold">{it.primary}</span>
+										{it.secondary && <span className="opacity-75">{it.secondary}</span>}
+									</div>
+								))}
+						</div>
+					</Row>
+				))}
 		</div>
 	);
 }

@@ -30,7 +30,8 @@ export type TemplateLayout =
 	| 'blobs'
 	| 'monogramBand'
 	| 'kicker'
-	| 'boldBars';
+	| 'boldBars'
+	| 'europass';
 
 const PHOTO_LAYOUTS: TemplateLayout[] = [
 	'twoColumn',
@@ -156,7 +157,7 @@ const RAW: Raw[] = [
 	{ slug: 'denver', name: 'Denver', category: 'Creative', tags: ['Greeting', 'Timeline', 'Grayscale'], blurb: 'A friendly Hey-there intro with a timeline of roles.', layout: 'kicker', accent: '#1f2937', font: 'sans', headingFont: 'display' },
 
 	// ---- Label left (editorial) ----
-	{ slug: 'london', name: 'London', category: 'Professional', tags: ['Label-left', 'Editorial', 'Serif'], blurb: 'An editorial layout with section labels down the left margin.', layout: 'labelLeft', accent: '#0f766e', font: 'serif', headingFont: 'display' },
+	{ slug: 'london', name: 'London', category: 'Technical', tags: ['Hanging labels', 'Ruled', 'Serif'], blurb: 'A quiet Europass-style serif page with hanging section labels.', layout: 'europass', accent: '#16181d', font: 'serif', headingFont: 'display' },
 	{ slug: 'milan', name: 'Milan', category: 'Professional', tags: ['Hairline sidebar', 'Gold', 'Dots'], blurb: 'A hairline-split sidebar with gold headings and dot skills.', layout: 'sidebarLeft', accent: '#b08d5f', font: 'sans', headingFont: 'display' },
 	{ slug: 'prague', name: 'Prague', category: 'Technical', tags: ['Label-left', 'Precise', 'Mono'], blurb: 'A precise label-left layout for engineers.', layout: 'labelLeft', accent: '#0369a1', font: 'grotesk', headingFont: 'display' },
 	{ slug: 'annie-grey', name: 'Annie Grey', category: 'Executive', tags: ['Framed name', 'Gold dashes', 'Centered'], blurb: 'A gold-framed name with dash-flanked centered headings.', layout: 'dashCenter', accent: '#a8842c', font: 'serif', headingFont: 'display' },
