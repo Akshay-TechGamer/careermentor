@@ -4,8 +4,10 @@ import { useState } from 'react';
 import { Plus, Trash2, ArrowUp, ArrowDown, RotateCcw, Check, Sparkles } from 'lucide-react';
 import {
 	ACCENT_PRESETS,
+	CUSTOM_LAYOUTS,
 	SECTION_META,
 	SECTION_ORDER,
+	type CustomLayout,
 	type CustomSection,
 	type EducationItem,
 	type ExperienceItem,
@@ -459,9 +461,18 @@ export function CustomSectionsEditor({ data, update }: { data: ResumeData; updat
 		const meta = SECTION_META[addType];
 		setSections((s) => [
 			...s,
-			{ id: id(), type: addType, heading: meta.heading, items: [{ id: id(), primary: '', secondary: '' }] },
+			{
+				id: id(),
+				type: addType,
+				heading: meta.heading,
+				layout: meta.defaultLayout,
+				items: [{ id: id(), primary: '', secondary: '' }],
+			},
 		]);
 	};
+
+	const setLayout = (si: number, layout: CustomLayout) =>
+		setSections((s) => s.map((sec, idx) => (idx === si ? { ...sec, layout } : sec)));
 
 	return (
 		<div className="space-y-4">
@@ -486,6 +497,19 @@ export function CustomSectionsEditor({ data, update }: { data: ResumeData; updat
 							<button className="btn-ghost p-1.5 rounded text-danger" onClick={() => setSections((s) => s.filter((_, idx) => idx !== si))} aria-label="Delete section">
 								<Trash2 className="w-4 h-4" />
 							</button>
+						</div>
+						<div className="flex flex-wrap items-center gap-1.5 mb-3">
+							<span className="text-xs text-on-surface-variant mr-1">Layout:</span>
+							{CUSTOM_LAYOUTS.map((l) => (
+								<button
+									key={l.key}
+									type="button"
+									className={`chip text-xs py-1 ${(sec.layout ?? meta.defaultLayout) === l.key ? 'chip-on' : ''}`}
+									onClick={() => setLayout(si, l.key)}
+								>
+									{l.label}
+								</button>
+							))}
 						</div>
 						<div className="space-y-2">
 							{sec.items.map((it, ii) => (

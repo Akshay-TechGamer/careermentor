@@ -2,14 +2,16 @@
 
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import { Download, ArrowLeft, Loader2, Printer } from 'lucide-react';
+import { Download, ArrowLeft, Loader2, FileType2 } from 'lucide-react';
 import { loadDraft, type Draft } from '@/lib/data/draftStore';
 import { ResumeRenderer } from '@/components/resume/ResumeRenderer';
 import { downloadResumePdf } from '@/lib/pdf/downloadPdf';
+import { downloadDocx } from '@/lib/docx/downloadDocx';
 
 export default function PreviewPage() {
 	const [draft, setDraft] = useState<Draft | null>(null);
 	const [busy, setBusy] = useState(false);
+	const [wordBusy, setWordBusy] = useState(false);
 	const sheetRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
@@ -26,6 +28,18 @@ export default function PreviewPage() {
 			console.error(e);
 		} finally {
 			setBusy(false);
+		}
+	};
+
+	const onWord = async () => {
+		if (!draft) return;
+		setWordBusy(true);
+		try {
+			await downloadDocx(draft.data, draft.title || 'resume');
+		} catch (e) {
+			console.error(e);
+		} finally {
+			setWordBusy(false);
 		}
 	};
 
@@ -48,8 +62,9 @@ export default function PreviewPage() {
 						<ArrowLeft className="w-4 h-4" /> Back
 					</Link>
 					<div className="flex items-center gap-2">
-						<button className="btn btn-outline" onClick={() => window.print()}>
-							<Printer className="w-4 h-4" /> <span className="hidden sm:inline">Print</span>
+						<button className="btn btn-outline" onClick={onWord} disabled={wordBusy}>
+							{wordBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileType2 className="w-4 h-4" />}
+							<span className="hidden sm:inline">Word</span>
 						</button>
 						<button className="btn btn-primary" onClick={onDownload} disabled={busy}>
 							{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}

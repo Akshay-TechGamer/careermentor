@@ -60,6 +60,9 @@ export interface ResumeStyle {
 
 export type SectionType = 'certifications' | 'languages' | 'awards' | 'links' | 'custom';
 
+/** How a custom section lays its items out — user-controllable. */
+export type CustomLayout = 'stacked' | 'inline' | 'twocol' | 'bulleted';
+
 export interface CustomSectionItem {
 	id: string;
 	primary: string;
@@ -70,6 +73,7 @@ export interface CustomSection {
 	id: string;
 	type: SectionType;
 	heading: string;
+	layout?: CustomLayout;
 	items: CustomSectionItem[];
 }
 
@@ -80,14 +84,22 @@ export interface SectionMeta {
 	secondary: string;
 	isLink?: boolean;
 	secondaryOptional?: boolean;
+	defaultLayout: CustomLayout;
 }
 
+export const CUSTOM_LAYOUTS: { key: CustomLayout; label: string }[] = [
+	{ key: 'stacked', label: 'Stacked' },
+	{ key: 'twocol', label: 'Two column' },
+	{ key: 'bulleted', label: 'Bulleted' },
+	{ key: 'inline', label: 'Inline' },
+];
+
 export const SECTION_META: Record<SectionType, SectionMeta> = {
-	certifications: { label: 'Certifications', heading: 'Certifications', primary: 'Certification name', secondary: 'Issuer · Year' },
-	languages: { label: 'Languages', heading: 'Languages', primary: 'Language', secondary: 'Proficiency (e.g. Fluent)' },
-	awards: { label: 'Awards & Honors', heading: 'Awards & Honors', primary: 'Award', secondary: 'Year' },
-	links: { label: 'Links / Website', heading: 'Links', primary: 'Label (e.g. Portfolio)', secondary: 'URL', isLink: true },
-	custom: { label: 'Custom section', heading: 'Custom Section', primary: 'Detail', secondary: 'Note (optional)', secondaryOptional: true },
+	certifications: { label: 'Certifications', heading: 'Certifications', primary: 'Certification name', secondary: 'Issuer · Year', defaultLayout: 'twocol' },
+	languages: { label: 'Languages', heading: 'Languages', primary: 'Language', secondary: 'Proficiency (e.g. Fluent)', defaultLayout: 'inline' },
+	awards: { label: 'Awards & Honors', heading: 'Awards & Honors', primary: 'Award', secondary: 'Year', defaultLayout: 'twocol' },
+	links: { label: 'Links / Website', heading: 'Links', primary: 'Label (e.g. Portfolio)', secondary: 'URL', isLink: true, defaultLayout: 'stacked' },
+	custom: { label: 'Custom section', heading: 'Custom Section', primary: 'Detail', secondary: 'Note (optional)', secondaryOptional: true, defaultLayout: 'bulleted' },
 };
 
 export const SECTION_ORDER: SectionType[] = ['links', 'certifications', 'languages', 'awards', 'custom'];

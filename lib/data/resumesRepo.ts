@@ -73,6 +73,20 @@ export async function updateResume(id: string, patch: ResumePatch): Promise<void
 	}
 }
 
+export async function duplicateResume(userId: string, row: ResumeRow): Promise<ResumeRow> {
+	return createResume({
+		userId,
+		title: `${row.title} (copy)`,
+		templateSlug: row.template_slug,
+		data: row.data,
+		atsScore: row.ats_score,
+	});
+}
+
+export async function renameResume(id: string, title: string): Promise<void> {
+	return updateResume(id, { title });
+}
+
 export async function deleteResume(id: string): Promise<void> {
 	const supabase = getSupabase();
 	const { error } = await supabase.from(TABLE).delete().eq('id', id);

@@ -1,4 +1,4 @@
-import { FONT_FAMILY, type ResumeData } from '@/lib/types';
+import { FONT_FAMILY, SECTION_META, type ResumeData } from '@/lib/types';
 import { getTemplate } from '@/lib/templates/registry';
 
 // Renders a resume document from data + template. Used for live preview and
@@ -117,45 +117,69 @@ function CustomBlocks({ data, accent }: { data: ResumeData; accent: string }) {
 	if (sections.length === 0) return null;
 	return (
 		<>
-			{sections.map((sec) => (
-				<div key={sec.id}>
-					<SectionTitle accent={accent}>{sec.heading}</SectionTitle>
-					{sec.type === 'links' ? (
-						<div className="space-y-0.5">
-							{sec.items
-								.filter((it) => it.primary || it.secondary)
-								.map((it) => (
-									<div key={it.id} className="text-[11px]">
-										{it.primary && <span className="font-semibold">{it.primary}: </span>}
-										<span style={{ color: accent }}>{it.secondary}</span>
-									</div>
-								))}
-						</div>
-					) : sec.type === 'languages' ? (
-						<div className="flex flex-wrap gap-x-4 gap-y-0.5">
-							{sec.items
-								.filter((it) => it.primary)
-								.map((it) => (
-									<span key={it.id} className="text-[11px]">
+			{sections.map((sec) => {
+				const items = sec.items.filter((it) => it.primary || it.secondary);
+				const layout = sec.layout ?? SECTION_META[sec.type].defaultLayout;
+				const isLink = sec.type === 'links';
+				const secStyle = isLink ? { color: accent } : { opacity: 0.72 };
+				return (
+					<div key={sec.id}>
+						<SectionTitle accent={accent}>{sec.heading}</SectionTitle>
+						{layout === 'inline' ? (
+							<div className="text-[11px] leading-relaxed">
+								{items.map((it, i) => (
+									<span key={it.id}>
 										<span className="font-semibold">{it.primary}</span>
-										{it.secondary && <span className="opacity-70"> — {it.secondary}</span>}
+										{it.secondary && (
+											<span style={secStyle}>
+												{isLink ? ' ' : ' ('}
+												{it.secondary}
+												{isLink ? '' : ')'}
+											</span>
+										)}
+										{i < items.length - 1 && <span className="opacity-40">{'   ·   '}</span>}
 									</span>
 								))}
-						</div>
-					) : (
-						<div className="space-y-0.5">
-							{sec.items
-								.filter((it) => it.primary || it.secondary)
-								.map((it) => (
-									<div key={it.id} className="text-[11.5px] flex justify-between gap-2">
+							</div>
+						) : layout === 'twocol' ? (
+							<div className="space-y-0.5">
+								{items.map((it) => (
+									<div key={it.id} className="text-[11.5px] flex justify-between gap-3">
 										<span className="font-semibold">{it.primary}</span>
-										{it.secondary && <span className="opacity-70 whitespace-nowrap">{it.secondary}</span>}
+										{it.secondary && (
+											<span className="whitespace-nowrap" style={secStyle}>
+												{it.secondary}
+											</span>
+										)}
 									</div>
 								))}
-						</div>
-					)}
-				</div>
-			))}
+							</div>
+						) : layout === 'bulleted' ? (
+							<ul className="list-disc pl-4 space-y-0.5">
+								{items.map((it) => (
+									<li key={it.id} className="text-[11px]">
+										<span className="font-semibold">{it.primary}</span>
+										{it.secondary && <span style={secStyle}> — {it.secondary}</span>}
+									</li>
+								))}
+							</ul>
+						) : (
+							<div className="space-y-1">
+								{items.map((it) => (
+									<div key={it.id}>
+										<div className="text-[11.5px] font-semibold">{it.primary}</div>
+										{it.secondary && (
+											<div className="text-[10.5px]" style={secStyle}>
+												{it.secondary}
+											</div>
+										)}
+									</div>
+								))}
+							</div>
+						)}
+					</div>
+				);
+			})}
 		</>
 	);
 }

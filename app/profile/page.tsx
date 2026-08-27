@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { User } from '@supabase/supabase-js';
-import { FileText, Trash2, Download, Loader2, Plus, UserCircle2, ArrowRight } from 'lucide-react';
+import { FileText, Trash2, Download, Loader2, Plus, UserCircle2, ArrowRight, Copy, Pencil } from 'lucide-react';
 import { getCurrentUser, signOut } from '@/lib/data/authRepo';
-import { listResumes, deleteResume } from '@/lib/data/resumesRepo';
+import { listResumes, deleteResume, duplicateResume, renameResume } from '@/lib/data/resumesRepo';
 import type { ResumeRow } from '@/lib/types';
 
 export default function ProfilePage() {
@@ -38,6 +38,20 @@ export default function ProfilePage() {
 	const onDelete = async (id: string) => {
 		await deleteResume(id);
 		setResumes((r) => r.filter((x) => x.id !== id));
+	};
+
+	const onDuplicate = async (row: ResumeRow) => {
+		if (!user) return;
+		const copy = await duplicateResume(user.id, row);
+		setResumes((r) => [copy, ...r]);
+	};
+
+	const onRename = async (row: ResumeRow) => {
+		const name = window.prompt('Rename resume', row.title);
+		if (name == null) return;
+		const title = name.trim() || row.title;
+		await renameResume(row.id, title);
+		setResumes((r) => r.map((x) => (x.id === row.id ? { ...x, title } : x)));
 	};
 
 	const onClear = async () => {
@@ -108,13 +122,17 @@ export default function ProfilePage() {
 								</span>
 							</span>
 						</Link>
-						<button
-							className="btn-ghost p-2 rounded text-danger"
-							onClick={() => onDelete(r.id)}
-							aria-label="Delete resume"
-						>
-							<Trash2 className="w-5 h-5" />
-						</button>
+						<div className="flex items-center gap-1 shrink-0">
+							<button className="btn-ghost p-2 rounded" onClick={() => onRename(r)} aria-label="Rename">
+								<Pencil className="w-4 h-4" />
+							</button>
+							<button className="btn-ghost p-2 rounded" onClick={() => onDuplicate(r)} aria-label="Duplicate">
+								<Copy className="w-4 h-4" />
+							</button>
+							<button className="btn-ghost p-2 rounded text-danger" onClick={() => onDelete(r.id)} aria-label="Delete resume">
+								<Trash2 className="w-4 h-4" />
+							</button>
+						</div>
 					</div>
 				))}
 			</div>
