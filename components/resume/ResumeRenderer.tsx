@@ -1348,30 +1348,99 @@ function BoxedTable({ data, accent, fontFamily }: { data: ResumeData; accent: st
 	);
 }
 
-/* Santiago-style: traditional serif with double rules and grey section bands */
+/* Santiago-style: centered serif name, grey section bands, diamond entries
+   with dotted leader lines to right-aligned dates, italic descriptions */
 function RuledBands({ data, accent, fontFamily }: { data: ResumeData; accent: string; fontFamily: string }) {
 	const p = data.personal;
-	const contact = [p.location, p.phone, p.email, ...p.links.map((l) => l.url)].filter(Boolean);
+	const links = p.links.map((l) => l.url).filter(Boolean);
+	const LeaderRow = ({ title, right }: { title: ReactNode; right: string }) => (
+		<div className="flex items-baseline gap-2">
+			<span className="font-bold text-[calc(11.5px_*_var(--rz-fs))] shrink-0">
+				<span style={{ color: accent }}>❖ </span>
+				{title}
+			</span>
+			<span className="flex-1 border-b border-dotted border-black/40 translate-y-[-3px]" />
+			{right && <span className="text-[calc(9.5px_*_var(--rz-fs))] opacity-75 whitespace-nowrap shrink-0">{right}</span>}
+		</div>
+	);
 	return (
 		<div className="bg-white text-[#111c2d] w-full h-full" style={{ fontFamily, padding: 'var(--rz-pad, 32px)' }}>
-			<header className="flex items-end justify-between gap-4">
-				<div className="min-w-0">
-					<h1 className="text-[calc(24px_*_var(--rz-fs))] font-bold leading-tight" style={{ color: accent }}>
-						{p.fullName || 'Your Name'}
-					</h1>
-					<div className="text-[calc(12px_*_var(--rz-fs))] font-semibold opacity-85">{p.title}</div>
-				</div>
-				{contact.length > 0 && (
-					<div className="text-right text-[calc(10px_*_var(--rz-fs))] opacity-80 space-y-0.5 shrink-0">
-						{contact.map((c, i) => (
-							<div key={i}>{c}</div>
-						))}
-					</div>
-				)}
+			<header className="text-center">
+				<h1 className="text-[calc(24px_*_var(--rz-fs))] font-bold leading-tight" style={{ color: accent }}>
+					{p.fullName || 'Your Name'}
+				</h1>
+				<div className="text-[calc(12px_*_var(--rz-fs))] font-semibold opacity-85">{p.title}</div>
+				{p.location && <div className="text-[calc(10px_*_var(--rz-fs))] opacity-75 mt-0.5">{p.location}</div>}
 			</header>
 			<div className="mt-3 border-t-2 border-black" />
-			<div className="mt-[3px] border-t border-black" />
-			{orderedCoreBlocks(data, accent, ['summary', 'experience', 'education', 'skills', 'projects'], 'band')}
+			{(p.phone || p.email || links.length > 0) && (
+				<div className="flex justify-between gap-4 py-1.5 text-[calc(10px_*_var(--rz-fs))] font-semibold">
+					<span>{p.phone}</span>
+					<span>{[p.email, ...links].filter(Boolean).join('  ·  ')}</span>
+				</div>
+			)}
+			<div className="border-t border-black" />
+			{p.summary && (
+				<>
+					<SectionTitle accent={accent} variant="band">Profile</SectionTitle>
+					<p className="text-[calc(11px_*_var(--rz-fs))] italic leading-snug">{p.summary}</p>
+				</>
+			)}
+			{data.experience.length > 0 && (
+				<>
+					<SectionTitle accent={accent} variant="band">Experience</SectionTitle>
+					{data.experience.map((e) => (
+						<div key={e.id} className="mb-3">
+							<LeaderRow
+								title={[e.role || 'Role', e.company].filter(Boolean).join(' - ')}
+								right={[e.start, e.current ? 'Current' : e.end].filter(Boolean).join(' - ')}
+							/>
+							<ul className="mt-1 list-disc pl-5 space-y-0.5">
+								{e.bullets.filter(Boolean).map((b, i) => (
+									<li key={i} className="text-[calc(10.5px_*_var(--rz-fs))] italic leading-snug">
+										{b}
+									</li>
+								))}
+							</ul>
+						</div>
+					))}
+				</>
+			)}
+			{data.education.length > 0 && (
+				<>
+					<SectionTitle accent={accent} variant="band">Education</SectionTitle>
+					{data.education.map((e) => (
+						<div key={e.id} className="mb-2.5">
+							<LeaderRow
+								title={[e.degree || 'Degree', e.school].filter(Boolean).join(', ')}
+								right={[e.start, e.end].filter(Boolean).join(' - ')}
+							/>
+							{e.details && (
+								<div className="text-[calc(10.5px_*_var(--rz-fs))] italic opacity-85 mt-0.5 pl-5">{e.details}</div>
+							)}
+						</div>
+					))}
+				</>
+			)}
+			{data.skills.length > 0 && (
+				<>
+					<SectionTitle accent={accent} variant="band">Skills</SectionTitle>
+					<div className="grid grid-cols-2 gap-x-8 gap-y-1">
+						{data.skills.map((s, i) => (
+							<div key={i} className="text-[calc(10.5px_*_var(--rz-fs))]">
+								<span style={{ color: accent }}>❖ </span>
+								{s}
+							</div>
+						))}
+					</div>
+				</>
+			)}
+			{filledProjects(data).length > 0 && (
+				<>
+					<SectionTitle accent={accent} variant="band">Projects</SectionTitle>
+					<ProjectsBlock data={data} accent={accent} />
+				</>
+			)}
 			<CustomBlocks data={data} accent={accent} variant="band" />
 		</div>
 	);
