@@ -36,6 +36,9 @@ export function ResumeRenderer({
 	if (layout === 'sidebarLeft') {
 		return <SidebarLeft data={data} accent={accent} fontFamily={fontFamily} />;
 	}
+	if (layout === 'sidebarRight') {
+		return <SidebarRight data={data} accent={accent} fontFamily={fontFamily} />;
+	}
 	if (layout === 'labelLeft') {
 		return <LabelLeft data={data} accent={accent} fontFamily={fontFamily} />;
 	}
@@ -428,6 +431,64 @@ function SidebarLeft({ data, accent, fontFamily }: { data: ResumeData; accent: s
 					{orderedCoreBlocks(data, accent, ['summary', 'experience', 'projects'])}
 					<CustomBlocks data={data} accent={accent} />
 				</main>
+			</div>
+		</div>
+	);
+}
+
+/* Paris/Lisbon-style: big name + photo, main content left, details/skills right */
+function SidebarRight({ data, accent, fontFamily }: { data: ResumeData; accent: string; fontFamily: string }) {
+	const p = data.personal;
+	const contact = [p.email, p.phone, p.location, ...p.links.map((l) => l.url)].filter(Boolean);
+	return (
+		<div className="bg-white text-[#111c2d] w-full h-full p-8" style={{ fontFamily }}>
+			<header className="flex items-start justify-between gap-4">
+				<div>
+					<h1 className="text-[26px] font-extrabold leading-none" style={{ color: accent }}>
+						{p.fullName || 'Your Name'}
+					</h1>
+					<div className="text-[14px] font-bold mt-1" style={{ color: accent }}>
+						{p.title}
+					</div>
+				</div>
+				{p.photo && (
+					// eslint-disable-next-line @next/next/no-img-element
+					<img src={p.photo} alt="" className="w-16 h-16 rounded-full object-cover shrink-0" />
+				)}
+			</header>
+			<div className="h-px w-full my-4" style={{ background: `${accent}30` }} />
+			<div className="flex gap-7">
+				<main className="flex-1">
+					{orderedCoreBlocks(data, accent, ['summary', 'experience', 'education', 'projects'])}
+				</main>
+				<aside className="w-[32%] shrink-0 space-y-4">
+					{contact.length > 0 && (
+						<div>
+							<SidebarHeading accent={accent}>Details</SidebarHeading>
+							<div className="space-y-0.5 text-[10.5px] break-words">
+								{contact.map((c, i) => (
+									<div key={i}>{c}</div>
+								))}
+							</div>
+						</div>
+					)}
+					{data.skills.length > 0 && (
+						<div>
+							<SidebarHeading accent={accent}>Skills</SidebarHeading>
+							<div className="space-y-1.5">
+								{data.skills.map((s, i) => (
+									<div key={i}>
+										<div className="text-[10.5px] mb-0.5">{s}</div>
+										<div className="h-1 rounded-full bg-black/10">
+											<div className="h-1 rounded-full" style={{ width: `${72 + (i % 3) * 9}%`, background: accent }} />
+										</div>
+									</div>
+								))}
+							</div>
+						</div>
+					)}
+					<CustomBlocks data={data} accent={accent} />
+				</aside>
 			</div>
 		</div>
 	);

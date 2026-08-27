@@ -89,6 +89,27 @@ export function TemplateThumb({ template }: { template: Template }) {
 				</div>
 			);
 		}
+		if (layout === 'sidebarRight') {
+			return (
+				<div className="h-full p-3">
+					<div className="flex items-start justify-between">
+						<div className="h-2 w-2/5 rounded" style={{ background: accent }} />
+						<div className="w-5 h-5 rounded-full bg-black/10" />
+					</div>
+					<div className="mt-2 h-px w-full" style={{ background: `${accent}55` }} />
+					<div className="flex gap-2 mt-2">
+						<div className="flex-1">
+							<div className="h-1 w-1/3 rounded" style={{ background: accent }} />
+							<Lines n={4} className="mt-1" />
+						</div>
+						<div className="w-1/3">
+							<div className="h-1 w-3/4 rounded mb-1" style={{ background: accent }} />
+							<Bars n={4} accent={accent} />
+						</div>
+					</div>
+				</div>
+			);
+		}
 		if (layout === 'labelLeft') {
 			return (
 				<div className="h-full p-3">
