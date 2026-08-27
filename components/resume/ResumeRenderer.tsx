@@ -284,18 +284,20 @@ function TwoColumn({ data, accent, fontFamily }: { data: ResumeData; accent: str
 	return (
 		<div className="bg-white text-[#111c2d] w-full h-full flex" style={{ fontFamily }}>
 			<aside className="w-1/3 p-5 text-white" style={{ background: accent }}>
-				{p.photo && (
-					// eslint-disable-next-line @next/next/no-img-element
-					<img
-						src={p.photo}
-						alt=""
-						className="w-20 h-20 rounded-full object-cover mb-3 border-2 border-white/40"
-					/>
-				)}
-				<h1 className="text-[19px] font-extrabold leading-tight">{p.fullName || 'Your Name'}</h1>
-				<div className="text-[12px] opacity-90 font-semibold">{p.title}</div>
+				<div className="text-center">
+					{p.photo && (
+						// eslint-disable-next-line @next/next/no-img-element
+						<img
+							src={p.photo}
+							alt=""
+							className="w-20 h-20 rounded-full object-cover mx-auto mb-2 border-2 border-white/50"
+						/>
+					)}
+					<h1 className="text-[18px] font-extrabold leading-tight">{p.fullName || 'Your Name'}</h1>
+					<div className="text-[11px] opacity-90 font-semibold">{p.title}</div>
+				</div>
 
-				<div className="mt-4">
+				<div className="mt-5">
 					<h2 className="text-[11px] font-bold uppercase tracking-wide opacity-90">Contact</h2>
 					<div className="mt-1 space-y-0.5 text-[10.5px] opacity-90 break-words">
 						{[p.email, p.phone, p.location, ...p.links.map((l) => l.url)]
