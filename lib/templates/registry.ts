@@ -13,7 +13,12 @@ export type TemplateLayout =
 	| 'labelLeft'
 	| 'fullColor'
 	| 'railCards'
-	| 'softBand';
+	| 'softBand'
+	| 'photoRight'
+	| 'centerSplit'
+	| 'panelRight'
+	| 'boxedTable'
+	| 'ruledBands';
 
 const PHOTO_LAYOUTS: TemplateLayout[] = [
 	'twoColumn',
@@ -22,6 +27,9 @@ const PHOTO_LAYOUTS: TemplateLayout[] = [
 	'fullColor',
 	'railCards',
 	'softBand',
+	'photoRight',
+	'centerSplit',
+	'panelRight',
 ];
 
 /** Whether a layout renders the headshot — drives the photo-upload UI too. */
@@ -103,6 +111,13 @@ const RAW: Raw[] = [
 	{ slug: 'toronto', name: 'Toronto', category: 'Professional', tags: ['Right sidebar', 'Serif', 'Teal'], blurb: 'A clean serif layout with skills in a right rail.', layout: 'sidebarRight', accent: '#0f766e', font: 'serif', headingFont: 'display' },
 	{ slug: 'vancouver', name: 'Vancouver', category: 'Creative', tags: ['Right sidebar', 'Warm', 'Amber'], blurb: 'A warm amber layout with a supportive right column.', layout: 'sidebarRight', accent: '#b45309', font: 'sans', headingFont: 'display' },
 	{ slug: 'shanghai', name: 'Shanghai', category: 'Professional', tags: ['Right sidebar', 'Mono', 'Indigo'], blurb: 'A precise indigo layout with mono accents.', layout: 'sidebarRight', accent: '#4338ca', font: 'grotesk', headingFont: 'display' },
+
+	// ---- From the user's design library ----
+	{ slug: 'helsinki', name: 'Helsinki', category: 'Professional', tags: ['Photo right', 'Double rules', 'Blue'], blurb: 'A crisp single column with a top-right photo and double-ruled headings.', layout: 'photoRight', accent: '#1d4ed8', font: 'sans', headingFont: 'display' },
+	{ slug: 'new-york', name: 'New York', category: 'Professional', tags: ['Centered photo', 'Split', 'Minimal'], blurb: 'A centered photo header over a clean two-column body.', layout: 'centerSplit', accent: '#16181d', font: 'sans', headingFont: 'display' },
+	{ slug: 'stockholm', name: 'Stockholm', category: 'Professional', tags: ['Right panel', 'Skill bars', 'Blue'], blurb: 'A tinted right panel with progress-bar skills — a classic favourite.', layout: 'panelRight', accent: '#2563eb', font: 'sans', headingFont: 'display' },
+	{ slug: 'tokyo', name: 'Tokyo', category: 'Professional', tags: ['Boxed sections', 'Table', 'Structured'], blurb: 'A structured, boxed layout inspired by the Japanese work-history CV.', layout: 'boxedTable', accent: '#334155', font: 'sans', headingFont: 'body' },
+	{ slug: 'santiago', name: 'Santiago', category: 'Executive', tags: ['Traditional', 'Ruled bands', 'Serif'], blurb: 'A traditional serif layout with centred section bands and rules.', layout: 'ruledBands', accent: '#111c2d', font: 'serif', headingFont: 'display' },
 
 	// ---- Full color (entire page in accent, white text) ----
 	{ slug: 'moscow', name: 'Moscow', category: 'Executive', tags: ['Full color', 'Bold', 'Serif'], blurb: 'A striking full-color page in deep blue with white type.', layout: 'fullColor', accent: '#1e40af', font: 'serif', headingFont: 'display' },
